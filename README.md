@@ -6,7 +6,7 @@
 On Ubuntu 18.04 download ROS Melodic 
 http://wiki.ros.org/melodic/Installation/Ubuntu
 
-### Install libfreenect2 at HOME
+### Install libfreenect2 to your HOME directory
 ```
 cd ~/
 git clone https://github.com/OpenKinect/libfreenect2.git
@@ -24,13 +24,13 @@ sudo apt-get install libglfw3-dev
 sudo apt-get install beignet-dev
 ```
 
-Clone freenect2-python to HOME
+Clone freenect2-python to your HOME directory
 ```
 cd ~/
 git clone https://github.com/rjw57/freenect2-python
 ```
 
-Add PATHs to the ~/.bashrc file at HOME
+Add the following lines to the ~/.bashrc file at HOME
 ```
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/freenect2/lib/pkgconfig
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/freenect2/lib
@@ -48,7 +48,7 @@ make install
 ### Install CUDA
 https://developer.nvidia.com/cuda-downloads
 
-After following the installation add CUDA PATHs to the ~/.bashrc file
+After following the installation add the following lines to the ~/.bashrc file
 ```
 export LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
 export PATH="/usr/local/cuda/bin:${PATH}"
