@@ -71,6 +71,10 @@ cd ~/libfreenect2/build/bin
 ./Protonect gl
 ./Protonect cpu
 ```
+If you have CUDA set up:
+```
+./Protonect cuda
+```
 
 ### Build the workspace
 ```
