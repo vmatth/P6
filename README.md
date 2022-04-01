@@ -1,10 +1,11 @@
 # P6 Robotics Bachelor Project
 
-## Setup
-
-### Install ROS Melodic
+## Setup ROS Melodic
 On Ubuntu 18.04 download ROS Melodic 
 http://wiki.ros.org/melodic/Installation/Ubuntu
+
+
+## Setup Kinect2 Camera (Optional)
 
 ### Install libfreenect2 to your HOME directory
 ```
