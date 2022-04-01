@@ -62,7 +62,7 @@ echo "/usr/local/cuda/lib64" | sudo tee /etc/ld.so.conf.d/cuda.conf
 sudo ldconfig
 ```
 
-### Test Kinect2
+### Test Kinect2 (If you receive USB errors try to restart your computer)
 
 Connect Kinect2 and test the camera using libfreenect2:
 
