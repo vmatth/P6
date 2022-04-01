@@ -100,10 +100,10 @@ class image_converter:
 
             cv2.waitKey(3)
             #Show images
-            cv2.imshow("Raw Image", rgb_image)
-            cv2.imshow("Grayscale Image", grayscale_image)
-            cv2.imshow("Blurred Image", blur_image)
-            cv2.imshow("Threshold", thresh_image)
+            #cv2.imshow("Raw Image", rgb_image)
+            #cv2.imshow("Grayscale Image", grayscale_image)
+            #cv2.imshow("Blurred Image", blur_image)
+            #cv2.imshow("Threshold", thresh_image)
             #cv2.imshow("Canny Edge Detection", edge_image)
             cv2.imshow("Morphology Image", opening_image)
             cv2.imshow("RGB Image w/ Overlay", rgb_overlay)
