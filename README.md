@@ -30,11 +30,6 @@ Clone freenect2-python to your HOME directory
 cd ~/
 git clone https://github.com/rjw57/freenect2-python
 ```
-Install freenect2
-```
-export PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig
-pip install freenect2
-```
 
 Add the following lines to the ~/.bashrc file at HOME
 ```
