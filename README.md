@@ -83,7 +83,7 @@ catkin_make
 ```
 ### Source P6 workspace in ~/.bashrc (Restart your terminal after for bashrc to take effect)
 ```
-source cd ~/P6/devel/setup.bash
+source ~/P6/devel/setup.bash
 ```
 
 ### Test the kinect in ros
