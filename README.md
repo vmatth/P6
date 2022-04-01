@@ -5,7 +5,7 @@ On Ubuntu 18.04 download ROS Melodic
 http://wiki.ros.org/melodic/Installation/Ubuntu
 
 
-## Setup Kinect2 Camera (Optional)
+## Setup Kinect2 Camera
 
 ### Install libfreenect2 to your HOME directory
 ```
