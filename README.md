@@ -53,7 +53,7 @@ make
 make install
 ```
 
-### Install CUDA
+### Install CUDA (If you have nvidia)
 https://developer.nvidia.com/cuda-downloads
 
 After following the installation add the following lines to the ~/.bashrc file
