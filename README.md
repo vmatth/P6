@@ -36,11 +36,13 @@ Add the following lines to the ~/.bashrc file at HOME
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/freenect2/lib/pkgconfig
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/freenect2/lib
 ```
+Close and open the terminal for the .bashrc files to have an effect
 
 cd to libfreenect and build
 ```
 cd ~/libfreenect2
-mkdir build && cd build
+mkdir build
+cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/freenect2 -Dfreenect2_DIR=$HOME/freenect2/lib/cmake/freenect2
 make
 make install
