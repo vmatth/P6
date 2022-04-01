@@ -7,7 +7,7 @@ http://wiki.ros.org/melodic/Installation/Ubuntu
 
 ## Setup Kinect2 Camera
 
-### Install libfreenect2 to your HOME directory
+### Install libfreenect2 to your HOME directory (Copy everything line by line)
 ```
 cd ~/
 git clone https://github.com/OpenKinect/libfreenect2.git
