@@ -81,6 +81,11 @@ If you have CUDA set up:
 cd ~/P6
 catkin_make
 ```
+### Source P6 workspace in ~/.bashrc (Restart your terminal after for bashrc to take effect)
+```
+source cd ~/P6/devel/setup.bash
+```
+
 ### Test the kinect in ros
 ```
 roslaunch kinect2_bridge kinect2_bridge.launch
