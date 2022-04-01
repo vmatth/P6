@@ -30,6 +30,10 @@ Clone freenect2-python to your HOME directory
 cd ~/
 git clone https://github.com/rjw57/freenect2-python
 ```
+Install freenect2
+```
+pip install --user freenect2
+```
 
 Add the following lines to the ~/.bashrc file at HOME
 ```
