@@ -32,6 +32,7 @@ git clone https://github.com/rjw57/freenect2-python
 ```
 Install freenect2
 ```
+export PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig
 pip install freenect2
 ```
 
