@@ -86,7 +86,8 @@ catkin_make
 source ~/P6/devel/setup.bash
 ```
 
-### Test the kinect in ros
+## Using the Kinect2 camera in ros
+Run the following command to allow ros to use Kinect2 data
 ```
 roslaunch kinect2_bridge kinect2_bridge.launch
 ```
