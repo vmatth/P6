@@ -30,11 +30,6 @@ Clone freenect2-python to your HOME directory
 cd ~/
 git clone https://github.com/rjw57/freenect2-python
 ```
-Install freenect2
-```
-export PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig
-pip install freenect2
-```
 
 Add the following lines to the ~/.bashrc file at HOME
 ```
@@ -67,7 +62,7 @@ echo "/usr/local/cuda/lib64" | sudo tee /etc/ld.so.conf.d/cuda.conf
 sudo ldconfig
 ```
 
-### Test Kinect2
+### Test Kinect2 (If you receive USB errors try to restart your computer)
 
 Connect Kinect2 and test the camera using libfreenect2:
 
@@ -76,13 +71,23 @@ cd ~/libfreenect2/build/bin
 ./Protonect gl
 ./Protonect cpu
 ```
+If you have CUDA set up:
+```
+./Protonect cuda
+```
 
 ### Build the workspace
 ```
 cd ~/P6
 catkin_make
 ```
-### Test the kinect in ros
+### Source P6 workspace in ~/.bashrc (Restart your terminal after for bashrc to take effect)
+```
+source ~/P6/devel/setup.bash
+```
+
+## Using the Kinect2 camera in ros
+Run the following command to allow ros to use Kinect2 data
 ```
 roslaunch kinect2_bridge kinect2_bridge.launch
 ```
