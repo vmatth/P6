@@ -172,26 +172,12 @@ class image_converter:
             depth_overlay = depth_image
 
             #Find contours
-            _,cnts,_= cv2.findContours(canny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #Image for contours can be opening_image or edge_image
+            cnts= cv2.findContours(canny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #Image for contours can be opening_image or edge_image
             
+
+            cnts = cnts[0] if len(cnts) == 2 else cnts[1]
             #Print and draw found contour areas with greater area than...
             min_area = 1300
-            # boxes = []
-            # for c in cnts:
-            #     x,y,w,h = cv2.boundingRect(c)
-            #     boxes.append([x,y,w,h])
-            #         #print("Contour areas",area)
-            #         #approxrect = cv2.minAreaRect(box)
-            #         #box = cv2.boxPoints(approxrect)
-            #         #box = np.int0(box)
-                
-            # for box in boxes:
-            #     top_left = (box[0],box[1])
-            #     bottom_right = (box[0] + box[2], box[1] + box[3])
-            #     cv2.rectangle(rgb_image,top_left, bottom_right, (0,255,0), 2)
-            #     #cv2.drawContours(rgb_image,[c],-1,(0,255,0),2)
-
-            min_area = 10000
 
             for cnt in cnts:
                 area = cv2.contourArea(cnt)
