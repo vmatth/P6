@@ -94,3 +94,21 @@ Run the following command to allow ros to use Kinect2 data
 ```
 roslaunch kinect2_bridge kinect2_bridge.launch
 ```
+
+## Setup UR5 Robot
+
+### Setup UR5 network:
+
+Navigate to Setup Robot / Setup Network
+Check Static Address
+Input a reasonable IP address, e.g. 172.22.22.2
+Input Netmask as 255.255.255.0, Gateway and DNS server as 0.0.0.0
+
+Setup wired PC network:
+
+    Choose static IP address, e.g 172.22.22.1
+
+Add the computer's IP address to the UR5 using the controller
+
+Connect the UR5 and PC using an Ethernet cable
+
