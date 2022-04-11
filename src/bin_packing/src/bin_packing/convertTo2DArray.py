@@ -11,6 +11,6 @@ def convertTo2DArray(input, invert):
             output[x][y] = input[x].row_data[y]
     if(invert):
         output = np.array(output).T.tolist()
-        print("flipped", output)
-    print(type(output))
+        #print("flipped", output)
+    #print(type(output))
     return output

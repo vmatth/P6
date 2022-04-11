@@ -13,10 +13,10 @@ class parcel:
         x = self.size.x
         y = self.size.y
         z = self.size.z
-        print("Values before rotating:")
-        print(self.size)
+        #print("Values before rotating:")
+        #print(self.size)
 
-        print("Rotating around: ", axis)
+        # print("Rotating around: ", axis)
 
         if axis == 'x':
             self.size = Point(x, z, y)
@@ -26,6 +26,6 @@ class parcel:
             self.size = Point(y, x ,z)
 
     
-        print("Values after rotating:")
-        print(self.size)
+        #print("Values after rotating:")
+        #print(self.size)
         return parcel

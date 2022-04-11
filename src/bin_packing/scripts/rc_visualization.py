@@ -35,19 +35,19 @@ class packing_visualization:
         print("Receiving data from /workspace/info")
         plt.ion()
         #Set figure limits
-        # self.ax3d.set_xlim([0, data.size.x])
-        # self.ax3d.set_ylim([0, data.size.y])
-        # self.ax3d.set_zlim([0, data.size.z])
+        self.ax3d.set_xlim([0, data.size.x])
+        self.ax3d.set_ylim([0, data.size.y])
+        self.ax3d.set_zlim([0, data.size.z])
 
-        # self.ax2d.set_xlim([0, data.size.x])
-        # self.ax2d.set_ylim([0, data.size.y])
+        self.ax2d.set_xlim([0, data.size.x])
+        self.ax2d.set_ylim([0, data.size.y])
 
-        self.ax3d.set_xlim([0, 10])
-        self.ax3d.set_ylim([0, 10])
-        self.ax3d.set_zlim([0, 10])
+        # self.ax3d.set_xlim([0, 10])
+        # self.ax3d.set_ylim([0, 10])
+        # self.ax3d.set_zlim([0, 10])
 
-        self.ax2d.set_xlim([0, 10])
-        self.ax2d.set_ylim([0, 10])
+        # self.ax2d.set_xlim([0, 10])
+        # self.ax2d.set_ylim([0, 10])
 
 
 

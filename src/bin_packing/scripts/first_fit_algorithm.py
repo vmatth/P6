@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import re
-from turtle import pos, width
 import rospy
 from read_camera.msg import Parcel
 import matplotlib.pyplot as plt
@@ -34,7 +32,7 @@ class first_fit:
         #rospy.loginfo(rospy.get_caller_id() + "Receiving data from /workspace/info %s", data)
         self.workspace_size = data.size
         self.height_map = convertTo2DArray(data.height_map, False)
-        print("new height_map_ ", self.height_map)
+        #print("new height_map_ ", self.height_map)
 
     #Callback function when a new parcel is published to the /parcel_info topic
     def parcel_callback(self, data):
@@ -73,12 +71,41 @@ class first_fit:
         pos_x = int(position.x)
         pos_y = int(position.y)
 
+        corner_pixels = ((pos_x, pos_y),(pos_x+size_x-1,pos_y),(pos_x+size_x-1,pos_y+size_y-1),(pos_x,pos_y+size_y-1))
+        print("corner pixels: ", corner_pixels)
+        supported_pixels = 0.0
+        counter = 0
         temp = self.height_map[pos_x][pos_y]
         for x in range(pos_x, pos_x + size_x):
             for y in range(pos_y, pos_y + size_y):
-                if temp is not self.height_map[x][y]:
-                    return False
-        return True
+                if temp == self.height_map[x][y]: #Check if (x,y) coordinate is supported
+                        supported_pixels += 1
+                        #check if x, y is one of the corner pixels
+                        if (x,y) in corner_pixels:
+                            print("Corner pixel: x: ", x, "x: ", y)
+                            counter += 1
+                            print("counter: ", counter)
+        print("supported pixel: ", supported_pixels)
+        total_parcel_pixels = float(size_x) * float(size_y)
+        print("total: ", total_parcel_pixels)
+        bottom_area_supported = supported_pixels/total_parcel_pixels * 100
+        print("Area supported: ", int(bottom_area_supported), "%")
+        if bottom_area_supported >= 95:
+            print("95 percent stability requirement")
+            return True
+        elif counter >= 3 and bottom_area_supported >= 80:
+            print("80 percent and 3 corners stability requirement")
+            return True
+        elif counter == 4 and bottom_area_supported >= 60:
+            print("60 percent and 4 corners stability requirement")
+            return True 
+        else:
+            return False
+
+        
+
+        # elif corner_pixels in  and bottom_area_supported >= 80:
+        #     return True
 
     def first_fit_algorithm(self, parcel):
         ws_x = int(self.workspace_size.x)
@@ -91,10 +118,10 @@ class first_fit:
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
                 in_range = self.parcel_in_range(Point(x,y,z), parcel)
-                print("in_range: ", in_range, " at: ", Point(x,y,z))
+                #print("in_range: ", in_range, " at: ", Point(x,y,z))
                 if in_range is True:
                     supported = self.bottom_supported(Point(x,y, 0), parcel)
-                    print("supported: ", supported, " at: ", Point(x,y,z))
+                    #print("supported: ", supported, " at: ", Point(x,y,z))
                     if supported is True:
                         #Publish to a ros topic
                         self.packing_pub(Point(x, y, z), parcel.size)
@@ -116,6 +143,7 @@ class first_fit:
                             p.rotate_parcel('z')
                             if self.first_fit_algorithm(p) == False:       
                                 print("Parcel cannot be packed into the roller cage")
+                                rospy.sleep(999)
 
     def packing_pub(self, pos, size):
         msg = Packing_info()
