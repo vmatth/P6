@@ -72,7 +72,7 @@ class first_fit:
         pos_y = int(position.y)
 
         corner_pixels = ((pos_x, pos_y),(pos_x+size_x-1,pos_y),(pos_x+size_x-1,pos_y+size_y-1),(pos_x,pos_y+size_y-1))
-        print("corner pixels: ", corner_pixels)
+        #print("corner pixels: ", corner_pixels)
         supported_pixels = 0.0
         counter = 0
         temp = self.height_map[pos_x][pos_y]
@@ -82,22 +82,22 @@ class first_fit:
                         supported_pixels += 1
                         #check if x, y is one of the corner pixels
                         if (x,y) in corner_pixels:
-                            print("Corner pixel: x: ", x, "x: ", y)
+                            #print("Corner pixel: x: ", x, "x: ", y)
                             counter += 1
-                            print("counter: ", counter)
-        print("supported pixel: ", supported_pixels)
+                            #print("counter: ", counter)
+        #print("supported pixel: ", supported_pixels)
         total_parcel_pixels = float(size_x) * float(size_y)
-        print("total: ", total_parcel_pixels)
+        #print("total: ", total_parcel_pixels)
         bottom_area_supported = supported_pixels/total_parcel_pixels * 100
-        print("Area supported: ", int(bottom_area_supported), "%")
+        #print("Area supported: ", int(bottom_area_supported), "%")
         if bottom_area_supported >= 95:
-            print("95 percent stability requirement")
+        #    print("95 percent stability requirement")
             return True
         elif counter >= 3 and bottom_area_supported >= 80:
-            print("80 percent and 3 corners stability requirement")
+        #    print("80 percent and 3 corners stability requirement")
             return True
         elif counter == 4 and bottom_area_supported >= 60:
-            print("60 percent and 4 corners stability requirement")
+        #    print("60 percent and 4 corners stability requirement")
             return True 
         else:
             return False
@@ -111,8 +111,8 @@ class first_fit:
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
 
-        print("ws size_ ", self.workspace_size)
-        print("height_map:", self.height_map)
+        #print("ws size_ ", self.workspace_size)
+        #print("height_map:", self.height_map)
 
         for y in range(ws_y):
             for x in range(ws_x):

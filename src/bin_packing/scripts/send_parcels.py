@@ -19,10 +19,10 @@ import random
 def generate_parcels(pub):
     random.seed(69) 
 
-    for i in range(3):
+    for i in range(300):
 
-        packing_pub(Point(random.randrange(7,15),random.randrange(7,15), random.randrange(7,15)), pub)
-        rospy.sleep(0.1)
+        packing_pub(Point(random.randrange(18,45),random.randrange(18,45), random.randrange(18,45)), pub)
+        rospy.sleep(0.3)
 
 def packing_pub(size, pub):
     msg = Parcel()
