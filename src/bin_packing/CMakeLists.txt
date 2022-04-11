@@ -169,6 +169,8 @@ include_directories(
    scripts/rc_visualization.py
    scripts/first_fit_algorithm.py
    scripts/floor_building_algorithm.py
+   scripts/workspace.py
+   scripts/send_parcels.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 

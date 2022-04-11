@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import re
-from turtle import pos, width
 import rospy
 from read_camera.msg import Parcel
 import matplotlib.pyplot as plt
@@ -13,147 +11,145 @@ from bin_packing.msg import Packing_info
 from read_camera.msg import Parcel
 from bin_packing.parcel import parcel
 from geometry_msgs.msg import Point
-
-
-
-#Class for the packing system. Defines the workspace plots
-class workspace:
-
-    #Init function for the packing setup. Creates the workspace & height map plots. Workspace sizes are in [cm]. 
-    def __init__(self, x, y, z):
-        #rospy.Subscriber("/parcel_info", Parcel , self.parcel_callback)
-
-        self.parcels = [] #Stores all of the parcels in the workspace
-
-        self.workspace_size = (x, y, z) #Save the workspace size in a variable
-
-        self.height_map_array = [[0 for i in range(x)] for j in range(y)] 
-
-
-
-
+from bin_packing.msg import Workspace #workspace msg
+from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 class first_fit:
-    def __init__(self, ws):
+    def __init__(self):
         print("init first fit")
-        print("workspace size: ", ws.workspace_size)
-        self.ws = ws
-        self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
+
+        self.workspace_size = Point(0, 0, 0)
+        self.height_map = [[]]
+
+        self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
+        
         rospy.Subscriber("/parcel_info", Parcel, self.parcel_callback)
 
-        #subscriber 
+        rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
     
+    def workspace_callback(self, data):
+        print("/workspace/info callback")
+        #rospy.loginfo(rospy.get_caller_id() + "Receiving data from /workspace/info %s", data)
+        self.workspace_size = data.size
+        self.height_map = convertTo2DArray(data.height_map, False)
+        #print("new height_map_ ", self.height_map)
+
     #Callback function when a new parcel is published to the /parcel_info topic
     def parcel_callback(self, data):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
-        p = parcel((0,0,0), (int(data.width), int(data.height), int(data.depth)))
+        rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
+        p = parcel(Point(0,0,0), data.size)
         self.start_first_fit(p)
-
-    #def place_parcel(self, pos, parcel):
-        #publish to a topic
 
     #Returns if the parcel is in the workspace bounds at (x,y) position
     def parcel_in_range(self, position, parcel):
-        size_x = parcel.size[0]
-        size_y = parcel.size[1]
-        size_z = parcel.size[2]
-        pos_x = position[0]
-        pos_y = position[1]
-        pos_z = position[2]
-        print("Checking if parcel is in range. Size: ", parcel.size, " | Pos: ", position)
+        size_x = parcel.size.x
+        size_y = parcel.size.y
+        size_z = parcel.size.z
+        pos_x = position.x
+        pos_y = position.y
+        pos_z = position.z
+        #print("Checking if parcel is in range. Size: ", parcel.size, " | Pos: ", position)
 
-        print("ws size_ ", self.ws.workspace_size)
         #Check if x is in the workspace
-        if (pos_x + size_x) > self.ws.workspace_size[0]: #x is out of bounds
+        if (pos_x + size_x) > self.workspace_size.x: #x is out of bounds
             return False
 
         #Check if y is in the workspace
-        if (pos_y + size_y) > self.ws.workspace_size[1]:
+        if (pos_y + size_y) > self.workspace_size.y:
             return False
 
         #Check if z is in the workspace
-        if (pos_z + size_z) > self.ws.workspace_size[2] + 1:
+        if (pos_z + size_z) > self.workspace_size.z + 1:
             return False
 
         return True
 
     #Returns if the parcel is supported at (x,y) position
     def bottom_supported(self, position, parcel):
-        size_x = int(parcel.size[0])
-        size_y = int(parcel.size[1])
-        pos_x = int(position[0])
-        pos_y = int(position[1])
+        size_x = int(parcel.size.x)
+        size_y = int(parcel.size.y)
+        pos_x = int(position.x)
+        pos_y = int(position.y)
 
-        print("Checking if parcel is SUPPORTED. Size: ", parcel.size, " | Pos: ", position)
-
-        temp = self.ws.height_map_array[pos_x][pos_y]
+        corner_pixels = ((pos_x, pos_y),(pos_x+size_x-1,pos_y),(pos_x+size_x-1,pos_y+size_y-1),(pos_x,pos_y+size_y-1))
+        print("corner pixels: ", corner_pixels)
+        supported_pixels = 0.0
+        counter = 0
+        temp = self.height_map[pos_x][pos_y]
         for x in range(pos_x, pos_x + size_x):
             for y in range(pos_y, pos_y + size_y):
-                if temp is not self.ws.height_map_array[x][y]:
-                    return False
-        return True
+                if temp == self.height_map[x][y]: #Check if (x,y) coordinate is supported
+                        supported_pixels += 1
+                        #check if x, y is one of the corner pixels
+                        if (x,y) in corner_pixels:
+                            print("Corner pixel: x: ", x, "x: ", y)
+                            counter += 1
+                            print("counter: ", counter)
+        print("supported pixel: ", supported_pixels)
+        total_parcel_pixels = float(size_x) * float(size_y)
+        print("total: ", total_parcel_pixels)
+        bottom_area_supported = supported_pixels/total_parcel_pixels * 100
+        print("Area supported: ", int(bottom_area_supported), "%")
+        if bottom_area_supported >= 95:
+            print("95 percent stability requirement")
+            return True
+        elif counter >= 3 and bottom_area_supported >= 80:
+            print("80 percent and 3 corners stability requirement")
+            return True
+        elif counter == 4 and bottom_area_supported >= 60:
+            print("60 percent and 4 corners stability requirement")
+            return True 
+        else:
+            return False
 
-    def set_size(w,h, ax=None):
-        """ w, h: width, height in inches """
-        if not ax: ax=plt.gca()
-        l = ax.figure.subplotpars.left
-        r = ax.figure.subplotpars.right
-        t = ax.figure.subplotpars.top
-        b = ax.figure.subplotpars.bottom
-        figw = float(w)/(r-l)
-        figh = float(h)/(t-b)
-        ax.figure.set_size_inches(figw, figh)
+        
+
+        # elif corner_pixels in  and bottom_area_supported >= 80:
+        #     return True
 
     def first_fit_algorithm(self, parcel):
-        ws_x = self.ws.workspace_size[0]
-        ws_y = self.ws.workspace_size[1]
+        ws_x = int(self.workspace_size.x)
+        ws_y = int(self.workspace_size.y)
 
+        print("ws size_ ", self.workspace_size)
+        print("height_map:", self.height_map)
 
         for y in range(ws_y):
             for x in range(ws_x):
-                z = self.ws.height_map_array[x][y] #Get z for (x,y) coordinate
-                print("x: ", x, " | y:", y, " | z:", z) 
-                in_range = self.parcel_in_range((x,y,z), parcel)
-                print("In Range: ", in_range)
+                z = self.height_map[x][y] #Get z for (x,y) coordinate
+                in_range = self.parcel_in_range(Point(x,y,z), parcel)
+                #print("in_range: ", in_range, " at: ", Point(x,y,z))
                 if in_range is True:
-                    supported = self.bottom_supported((x,y),parcel)
-                    print("Supported: ", supported)
+                    supported = self.bottom_supported(Point(x,y, 0), parcel)
+                    #print("supported: ", supported, " at: ", Point(x,y,z))
                     if supported is True:
-                        print("(x,y,z): ", (x,y,z))
                         #Publish to a ros topic
-                        self.packing_pub(x, y, z, parcel.size[0], parcel.size[1], parcel.size[2])
-                        #Update height map
-                        #Add parcel to height map, by changing each pixel (x,y) to the height
-                        for i in range(x, x + parcel.size[0]): #x
-                            for j in range(y, y + parcel.size[1]): #y
-                                #print("sizes: ", parcel.size[0], " ", parcel.size[1])
-                                #print("wtf", i, " ", j)
-                                self.ws.height_map_array[i][j] = parcel.size[2] + z
+                        self.packing_pub(Point(x, y, z), parcel.size)
                         return (x,y,z) #Return x,y coordinate for parcel
             
         return False
 
     #Goes through all the different rotations for the package
-    def start_first_fit(self, parcel):
-        if self.first_fit_algorithm(parcel) == False:
-            parcel.rotate_parcel('z')
-            if self.first_fit_algorithm(parcel) == False:       
-                parcel.rotate_parcel('y')
-                if self.first_fit_algorithm(parcel) == False:       
-                    parcel.rotate_parcel('z')
-                    if self.first_fit_algorithm(parcel) == False:       
-                        parcel.rotate_parcel('y')
-                        if self.first_fit_algorithm(parcel) == False:       
-                            parcel.rotate_parcel('z')
-                            if self.first_fit_algorithm(parcel) == False:       
+    def start_first_fit(self, p):
+        if self.first_fit_algorithm(p) == False:
+            p.rotate_parcel('z')
+            if self.first_fit_algorithm(p) == False:       
+                p.rotate_parcel('y')
+                if self.first_fit_algorithm(p) == False:       
+                    p.rotate_parcel('z')
+                    if self.first_fit_algorithm(p) == False:       
+                        p.rotate_parcel('y')
+                        if self.first_fit_algorithm(p) == False:       
+                            p.rotate_parcel('z')
+                            if self.first_fit_algorithm(p) == False:       
                                 print("Parcel cannot be packed into the roller cage")
+                                rospy.sleep(999)
 
-    def packing_pub(self, pos_x, pos_y, pos_z, size_x, size_y, size_z):
+    def packing_pub(self, pos, size):
         msg = Packing_info()
 
-        msg.size = Point(size_x, size_y, size_z)
-        msg.pos = Point(pos_x, pos_y, pos_z)
-
+        msg.size = size
+        msg.pos = pos
 
         print(msg)
 
@@ -163,13 +159,7 @@ class first_fit:
 
 def main():
     rospy.init_node('first_fit_algorithm', anonymous=True)
-
-    ws = workspace(20, 20, 20) #Create a new instance of the workspace class
-
-    ff = first_fit(ws) #Create a new instance of the first fit class
-
-    #p = parcel((0,0,0), (1,1,1))
-
+    ff = first_fit() #Create a new instance of the first fit class
     #spin
     rospy.spin()
 

@@ -11,24 +11,68 @@ import math as ma
 from bin_packing.msg import Packing_info
 from bin_packing.parcel import parcel
 from bin_packing.msg import Workspace #workspace msg
+from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 
 #Class for the packing system. Defines the workspace plots
 class packing_visualization:
 
     #Init function for the packing setup. Creates the workspace & height map plots. Workspace sizes are in [cm]. 
-    def __init__(self, x, y, z):
-        self.subscriber = rospy.Subscriber("/packing_info", Packing_info , self.parcel_callback)
+    def __init__(self):
+        #self.subscriber = rospy.Subscriber("/packing_info", Packing_info , self.parcel_callback)
+        self.subscriber = rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
+        self.has_initialized = False
 
-        self.parcels = [] #Stores all of the parcels in the workspace
+        self.show_fig()
 
-        self.setup_workspace(x, y, z)
-        self.setup_height_map(x, y, z)
 
-        self.workspace_size = [(x, y, z)] #Save the workspace size in a variable
+        #self.workspace_size = [(x, y, z)] #Save the workspace size in a variable
 
-        #self.subscriber = rospy.Subscriber("/workspace", Workspace, self.workspace_callback)
 
+    def workspace_callback(self, data):
+        if self.has_initialized is False:
+            return
+        print("Receiving data from /workspace/info")
+        plt.ion()
+        #Set figure limits
+        self.ax3d.set_xlim([0, data.size.x])
+        self.ax3d.set_ylim([0, data.size.y])
+        self.ax3d.set_zlim([0, data.size.z])
+
+        self.ax2d.set_xlim([0, data.size.x])
+        self.ax2d.set_ylim([0, data.size.y])
+
+        # self.ax3d.set_xlim([0, 10])
+        # self.ax3d.set_ylim([0, 10])
+        # self.ax3d.set_zlim([0, 10])
+
+        # self.ax2d.set_xlim([0, 10])
+        # self.ax2d.set_ylim([0, 10])
+
+
+
+        #Visualize the parcels
+        positions = []
+        sizes = []
+        colors = []
+        for i in range(0, len(data.parcels)):
+            positions.append((data.parcels[i].pos.x, data.parcels[i].pos.y, data.parcels[i].pos.z))
+            sizes.append((data.parcels[i].size.x, data.parcels[i].size.y, data.parcels[i].size.z))
+            colors.append('#3c94ec4d')
+
+
+        if len(positions) > 0:
+            del self.ax3d.collections[:]
+            self.parcels = self.plotCubeAt2(positions,sizes,colors=colors, edgecolor="k")
+            self.ax3d.add_collection3d(self.parcels) 
+
+        #Height map
+        height_map = convertTo2DArray(data.height_map, True)
+        self.colorbar.remove()
+        c = plt.pcolormesh(height_map, edgecolors='k', linewidths=0.5, cmap='viridis', vmin=0.0, vmax=data.size.z)
+        self.colorbar = plt.colorbar(c)
+        plt.show()
+        plt.pause(0.01)
 
     #Callback function when a new parcel is published to the /parcel_info topic
     def parcel_callback(self, data):
@@ -36,6 +80,8 @@ class packing_visualization:
         #call add_parcel()
         p = parcel((data.pos.x, data.pos.y, data.pos.z), (data.size.x, data.size.y, data.size.z))
         self.add_parcel(p)
+
+
         
 
     def cuboid_data2(self,o, size=(1,1,1)):
@@ -60,53 +106,36 @@ class packing_visualization:
         return Poly3DCollection(np.concatenate(g), facecolors=np.repeat(colors,6), **kwargs)
     
     #Define the 3D workspace for bin packing. Arguments are x,y,z sizes for the workspace
-    def setup_workspace(self, x, y, z):
+    def show_fig(self):
+        if self.has_initialized:   
+            return
         self.fig = plt.figure(figsize=plt.figaspect(0.5))
 
         self.ax3d = self.fig.add_subplot(1,2,1, projection='3d')
 
-        self.ax3d.set_xlim([0, x])
-        self.ax3d.set_ylim([0, y])
-        self.ax3d.set_zlim([0, z])
+        self.ax3d.set_xlim([0, 20])
+        self.ax3d.set_ylim([0, 20])
+        self.ax3d.set_zlim([0, 20])
         self.ax3d.set_title('3D Workspace')
         self.ax3d.set_aspect('equal')
         self.ax3d.set_xlabel('x')
         self.ax3d.set_ylabel('y')
         self.ax3d.set_zlabel('z')
 
-        # set the spacing between subplots
-        plt.subplots_adjust(left=0.1,
-                    bottom=0.1, 
-                    right=0.9, 
-                    top=0.9, 
-                    wspace=0.4, 
-                    hspace=0.4)
-
-        plt.ion()
-        plt.show()
-        plt.pause(0.01)  
-
-    #Define the height map for bin packing. Arguments are x,y sizes, and res_x, res_y is the resolution.
-    def setup_height_map(self, x, y, z):
         self.ax2d = self.fig.add_subplot(1,2,2)
 
         self.ax2d.set_title('2D Heightmap')
         self.ax2d.set_xlabel('x')
         self.ax2d.set_ylabel('y')
 
-        res_x = int(x)
-        res_y = int(y)
+        res_x = int(20)
+        res_y = int(20)
 
-        print("Res_x:", )
-        print("Res_y:", y)
-
-
-        self.ax2d.set_xlim([0,x])
-        self.ax2d.set_ylim([0,y])
+        self.ax2d.set_xlim([0, 20])
+        self.ax2d.set_ylim([0, 20])
 
         # Create a 2D array using x,y
-        # Creates a list containing 5 lists, each of 8 items, all set to 0
-        self.height_map_array = [[0 for i in range(res_x)] for j in range(res_y)] 
+        #self.height_map_array = [[0 for i in range(res_x)] for j in range(res_y)] 
 
         w = 12
         h = 5
@@ -118,72 +147,63 @@ class packing_visualization:
         figh = float(h)/(t-b)
         self.ax2d.figure.set_size_inches(figw, figh)
 
-
+        # set the spacing between subplots
+        plt.subplots_adjust(left=0.1,
+                    bottom=0.1, 
+                    right=0.9, 
+                    top=0.9, 
+                    wspace=0.4, 
+                    hspace=0.4)
 
         plt.ion()   
-        c = plt.pcolormesh(self.height_map_array,edgecolors='k', linewidths=0.5, cmap='viridis', vmin=0.0, vmax=z)
-        plt.colorbar(c)
+        self.has_initialized = True
+        #plt.pcolormesh(c=None,edgecolors='k', linewidths=0.5, cmap='viridis', vmin=0.0, vmax=20)
+        c = plt.pcolormesh([[]])
+        self.colorbar = plt.colorbar(c)
         plt.show(block=True)
-        plt.pause(0.01)
-    
-    def add_parcel(self, parcel):
-        print("adding parcel to workspace")
+        plt.pause(0.01)  
 
-        self.parcels.append(parcel) #Add parcel to the workspace
 
-        #Visualize the parcel using matplotlib
-        positions = [parcel.position]        
-        sizes = [parcel.size]        
-        colors = ['#3c94ec4d'] #:)
-        print("colooooooors", colors)
+
+    # def add_parcel(self, parcel):
+    #     print("adding parcel to workspace")
+
+    #     self.parcels.append(parcel) #Add parcel to the workspace
+
+    #     #Visualize the parcel using matplotlib
+    #     positions = [parcel.position]        
+    #     sizes = [parcel.size]        
+    #     colors = ['#3c94ec4d'] #:)
+    #     print("colooooooors", colors)
         
-        pc = self.plotCubeAt2(positions,sizes,colors=colors, edgecolor="k")
-        self.ax3d.add_collection3d(pc) 
+    #     pc = self.plotCubeAt2(positions,sizes,colors=colors, edgecolor="k")
+    #     self.ax3d.add_collection3d(pc) 
 
-        pos_x = int(positions[0][0])
-        pos_y = int(positions[0][1])
-        pos_z = int(positions[0][2])
-        size_x = int(ma.ceil(sizes[0][0]))
-        size_y = int(ma.ceil(sizes[0][1]))
-        size_z = int(ma.ceil(sizes[0][2]))
+    #     pos_x = int(positions[0][0])
+    #     pos_y = int(positions[0][1])
+    #     pos_z = int(positions[0][2])
+    #     size_x = int(ma.ceil(sizes[0][0]))
+    #     size_y = int(ma.ceil(sizes[0][1]))
+    #     size_z = int(ma.ceil(sizes[0][2]))
 
-        #Add parcel to height map, by changing each pixel (x,y) to the height
-        for x in range(pos_x, pos_x + size_x):
-            for y in range(pos_y, pos_y + size_y):
-                self.height_map_array[y][x] = size_z + pos_z
+    #     #Add parcel to height map, by changing each pixel (x,y) to the height
+    #     for x in range(pos_x, pos_x + size_x):
+    #         for y in range(pos_y, pos_y + size_y):
+    #             self.height_map_array[y][x] = size_z + pos_z
             
 
             
-        plt.ion()
-        plt.pcolormesh(self.height_map_array,edgecolors='k', linewidths=0.5, cmap='viridis', vmin=0.0, vmax=20)
-        plt.show()
-        plt.pause(0.01)
+    #     plt.ion()
+    #     plt.pcolormesh(self.height_map_array,edgecolors='k', linewidths=0.5, cmap='viridis', vmin=0.0, vmax=20)
+    #     plt.show()
+    #     plt.pause(0.01)
         
 
 
 def main():
-    rospy.init_node('packing_visualization', anonymous=True)
+    rospy.init_node('visualization', anonymous=True)
 
-    ps = packing_visualization(20, 20, 20) #Size in cm
-
-    #p3 = parcel((2,4,8), (3, 6, 9))    
-
-    # p3 = parcel((1,6,7), (2, 4, 8))    
-    # ps.add_parcel(p3)
-
-    # p3 = parcel((4,4,3), (8, 6, 3))    
-    # ps.add_parcel(p3)
-
-    # p3 = parcel((5,10,11), (12, 8, 4))    
-    # ps.add_parcel(p3)
-
-    # p3 = parcel((11,2,3), (5, 10, 15))    
-    # ps.add_parcel(p3)
-
-
-
-
-
+    ps = packing_visualization() 
 
 if __name__ == '__main__':
     main()
