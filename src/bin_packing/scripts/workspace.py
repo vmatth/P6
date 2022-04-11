@@ -49,6 +49,31 @@ class workspace:
         msg.parcels = self.parcels
         self.pub.publish(msg)
 
+        parcelsV = []
+        for i in range(len(self.parcels)):
+            parcel_volume = self.parcels[i].size.x * self.parcels[i].size.y * self.parcels[i].size.z 
+            parcelsV.append(parcel_volume)
+        
+        #print("Parcel_volume: ", parcel_volume)
+        #print("list of volumes: ", parcelsV)
+        parcels_combined_volume = sum(parcelsV)
+        print("Combined Volume: ", parcels_combined_volume)
+        v_workspace = self.workspace_size.x * self.workspace_size.y * self.workspace_size.z
+        print("Workspace Volume: ", v_workspace)
+        if parcels_combined_volume > 0:
+            fill_rate = int(parcels_combined_volume / v_workspace  * 100)
+            print("fill_rate: ", fill_rate, "%")
+            num_parcels = len(parcelsV)
+            print("Parcel nr.: ", num_parcels)
+
+        #loop all parcels
+            #calculate volume for each parcel
+            #add the volumes together
+        #find volume
+            #calculate the workspace volume
+
+        #calculate fill-rate V_parcels/V_workspace *100
+
 
 def main():
     rospy.init_node('workspace', anonymous=True)

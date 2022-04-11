@@ -11,145 +11,255 @@ from bin_packing.msg import Packing_info
 from read_camera.msg import Parcel
 from bin_packing.parcel import parcel
 from geometry_msgs.msg import Point
-
-class workspace:
-
-    #Init function for the packing setup. Creates the workspace & height map plots. Workspace sizes are in [cm]. 
-    def __init__(self, x, y, z):
-        #rospy.Subscriber("/parcel_info", Parcel , self.parcel_callback)
-
-        self.parcels = [] #Stores all of the parcels in the workspace
-
-        self.workspace_size = (x, y, z) #Save the workspace size in a variable
-
-        self.height_map_array = [[0 for i in range(x)] for j in range(y)] 
-
-
-# packing_info, output from algorithm: position and size
-# parcel_info, width, height, depth
+from bin_packing.msg import Workspace #workspace msg
+from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 
 class floor_building:
-    def __init__(self, _ws):
+    def __init__(self):
         print("init floor building")
-        print("workspace size:", _ws.workspace_size)
-        self.ws = _ws
-        self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
-        rospy.Subscriber("/parcel_info", Parcel, self.parcel_callback)
 
+        self.workspace_size = Point(0, 0, 0)
+        self.height_map = [[]]
+        
+        self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
+        
+        #self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
+        
+        rospy.Subscriber("/parcel_info", Parcel, self.parcel_callback)
+        rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
+    
+    
+    def workspace_callback(self, data):
+        print("/workspace/info callback")
+        #rospy.loginfo(rospy.get_caller_id() + "Receiving data from /workspace/info %s", data)
+        self.workspace_size = data.size
+        self.height_map = convertTo2DArray(data.height_map, False)
+        #print("new height_map_ ", self.height_map)
+
+    
     def parcel_callback(self, data):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
-        p = parcel((0,0,0), (int(data.width), int(data.height), int(data.depth)))
+        rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
+        p = parcel(Point(0,0,0), data.size)
         self.start_floor_building(p)
 
     def parcel_in_range(self, position, parcel):
-            size_x = parcel.size[0]
-            size_y = parcel.size[1]
-            size_z = parcel.size[2]
-            pos_x = position[0]
-            pos_y = position[1]
-            pos_z = position[2]
+            size_x = parcel.size.x
+            size_y = parcel.size.y
+            size_z = parcel.size.z
+            pos_x = position.x
+            pos_y = position.y
+            pos_z = position.z
             #print("Checking if parcel is in range. Size: ", parcel.size, " | Pos: ", position)
 
             #print("ws size_ ", self.ws.workspace_size)
             #Check if x is in the workspace
-            if (pos_x + size_x) > self.ws.workspace_size[0]: #x is out of bounds
+            if (pos_x + size_x) > self.workspace_size.x: #x is out of bounds
                 return False
 
             #Check if y is in the workspace
-            if (pos_y + size_y) > self.ws.workspace_size[1]:
+            if (pos_y + size_y) > self.workspace_size.y:
                 return False
 
             #Check if z is in the workspace
-            if (pos_z + size_z) > self.ws.workspace_size[2] + 1:
+            if (pos_z + size_z) > self.workspace_size.z + 1:
                 return False
 
             return True
 
     def bottom_supported(self, position, parcel):
-            size_x = int(parcel.size[0])
-            size_y = int(parcel.size[1])
-            pos_x = int(position[0])
-            pos_y = int(position[1])
+            size_x = int(parcel.size.x)
+            size_y = int(parcel.size.y)
+            pos_x = int(position.x)
+            pos_y = int(position.y)
 
-            #print("Checking if parcel is SUPPORTED. Size: ", parcel.size, " | Pos: ", position)
-
-            temp = self.ws.height_map_array[pos_x][pos_y]
+            corner_pixels = ((pos_x, pos_y),(pos_x+size_x-1,pos_y),(pos_x+size_x-1,pos_y+size_y-1),(pos_x,pos_y+size_y-1))
+            supported_pixels = 0.0
+            counter = 0
+            temp = self.height_map[pos_x][pos_y]
             for x in range(pos_x, pos_x + size_x):
                 for y in range(pos_y, pos_y + size_y):
-                    if temp is not self.ws.height_map_array[x][y]:
-                        return False
-            return True
+                    if temp == self.height_map[x][y]: #Check if (x,y) coordinate is supported
+                            supported_pixels += 1
+                            #check if x, y is one of the corner pixels
+                            if (x,y) in corner_pixels:
+                                counter += 1
+            #print("supported pixel: ", supported_pixels)
+            total_parcel_pixels = float(size_x) * float(size_y)
+            #print("total: ", total_parcel_pixels)
+            bottom_area_supported = supported_pixels/total_parcel_pixels * 100
+            #print("Area supported: ", int(bottom_area_supported), "%")
+            if bottom_area_supported >= 95:
+                #print("95 percent stability requirement")
+                return True
+            elif counter >= 3 and bottom_area_supported >= 80:
+                #print("80 percent and 3 corners stability requirement")
+                return True
+            elif counter == 4 and bottom_area_supported >= 60:
+                #print("60 percent and 4 corners stability requirement")
+                return True 
+            else:
+                return False
+            
 
     def floor_building_algorithm(self, _parcel):
-        #run igennem alle x,y vaerdier
-            #kan pakken placeres paa denne koordinat?
-                #hvis ja: gem (x,y,z)
-        #sammenlign alle hoejder
-        #select den laveste koordinat
-        #publish den laveste (x,y,z)
-        ws_x = self.ws.workspace_size[0]
-        ws_y = self.ws.workspace_size[1]
-        xyzlist = [] 
+        ws_x = int(self.workspace_size.x)
+        ws_y = int(self.workspace_size.y)
+        xyzlist = []     
+        print("floor building algorithm")
 
-        temp_parcel = _parcel
-        print("og parcel", parcel)
-        print("temp parcel", temp_parcel)
+        r = 0 #Times rotated
+        original_parcel = parcel(Point(0,0,0), _parcel.size)
+        h = _parcel.size.z
 
         for y in range(ws_y):
             for x in range(ws_x):
-                z = self.ws.height_map_array[x][y] #Get z for (x,y) coordinate
-               # print("x: ", x, " | y:", y, " | z:", z) 
-                in_range = self.parcel_in_range((x,y,z), _parcel)
+                z = self.height_map[x][y] #Get z for (x,y) coordinate
+                print("In range func | (xy): ", (x,y), "z: ", z)
+                # print("x: ", x, " | y:", y, " | z:", z) 
+                in_range = self.parcel_in_range(Point(x,y,z), _parcel)
                 #print("In Range: ", in_range)
                 if in_range is True:
-                    supported = self.bottom_supported((x,y),_parcel)
+                    supported = self.bottom_supported(Point(x,y,0),_parcel)
                     #print("Supported: ", supported)
                     if supported is True:
                         #print("(x,y,z): ", (x,y,z))
-                        xyzlist.append((x,y,z))
+                        xyzlist.append((x,y,z, r, h))
                         #print("list: ", xyzlist)
-    
-        #rotate z her
-        temp_parcel.rotate_parcel('z')
-        
-        # for y in range(ws_y):
-        #     for x in range(ws_x):
-        #         z = self.ws.height_map_array[x][y] #Get z for (x,y) coordinate
-        #         #print("x: ", x, " | y:", y, " | z:", z) 
-        #         in_range = self.parcel_in_range((x,y,z), temp_parcel)
-        #        # print("In Range: ", in_range)
-        #         if in_range is True:
-        #             supported = self.bottom_supported((x,y),temp_parcel)
-        #            # print("Supported: ", supported)
-        #             if supported is True:
-        #                 #print("(x,y,z): ", (x,y,z))
-        #                 xyzlist.append((x,y,z))
-        #                 #print("list: ", xyzlist)
 
-        #kor samme for loop lmao
+        _parcel.rotate_parcel('z')
+        r = r + 1
+        h = _parcel.size.z
+        for y in range(ws_y):
+            for x in range(ws_x):
+                z = self.height_map[x][y] #Get z for (x,y) coordinate
+                # print("x: ", x, " | y:", y, " | z:", z) 
+                in_range = self.parcel_in_range(Point(x,y,z), _parcel)
+                #print("In Range: ", in_range)
+                if in_range is True:
+                    supported = self.bottom_supported(Point(x,y,0),_parcel)
+                    #print("Supported: ", supported)
+                    if supported is True:
+                        #print("(x,y,z): ", (x,y,z))
+                        xyzlist.append((x,y,z, r, h))
+                        #print("list: ", xyzlist)
 
-        #rotate igen
+        _parcel.rotate_parcel('y')
+        r = r + 1
+        h = _parcel.size.z
+        for y in range(ws_y):
+            for x in range(ws_x):
+                z = self.height_map[x][y] #Get z for (x,y) coordinate
+                # print("x: ", x, " | y:", y, " | z:", z) 
+                in_range = self.parcel_in_range(Point(x,y,z), _parcel)
+                #print("In Range: ", in_range)
+                if in_range is True:
+                    supported = self.bottom_supported(Point(x,y,0),_parcel)
+                    #print("Supported: ", supported)
+                    if supported is True:
+                        #print("(x,y,z): ", (x,y,z))
+                        xyzlist.append((x,y,z, r, h))
+                        #print("list: ", xyzlist)
+        _parcel.rotate_parcel('z')
+        r = r + 1
+        h = _parcel.size.z
+        for y in range(ws_y):
+            for x in range(ws_x):
+                z = self.height_map[x][y] #Get z for (x,y) coordinate
+                # print("x: ", x, " | y:", y, " | z:", z) 
+                in_range = self.parcel_in_range(Point(x,y,z), _parcel)
+                #print("In Range: ", in_range)
+                if in_range is True:
+                    supported = self.bottom_supported(Point(x,y,0),_parcel)
+                    #print("Supported: ", supported)
+                    if supported is True:
+                        #print("(x,y,z): ", (x,y,z))
+                        xyzlist.append((x,y,z, r, h))
+                        #print("list: ", xyzlist)
+        _parcel.rotate_parcel('y')
+        r = r + 1
+        h = _parcel.size.z
+        for y in range(ws_y):
+            for x in range(ws_x):
+                z = self.height_map[x][y] #Get z for (x,y) coordinate
+                # print("x: ", x, " | y:", y, " | z:", z) 
+                in_range = self.parcel_in_range(Point(x,y,z), _parcel)
+                #print("In Range: ", in_range)
+                if in_range is True:
+                    supported = self.bottom_supported(Point(x,y,0),_parcel)
+                    #print("Supported: ", supported)
+                    if supported is True:
+                        #print("(x,y,z): ", (x,y,z))
+                        xyzlist.append((x,y,z, r, h))
+                        #print("list: ", xyzlist)
+        _parcel.rotate_parcel('z')
+        r = r + 1
+        h = _parcel.size.z
+        for y in range(ws_y):
+            for x in range(ws_x):
+                z = self.height_map[x][y] #Get z for (x,y) coordinate
+                # print("x: ", x, " | y:", y, " | z:", z) 
+                in_range = self.parcel_in_range(Point(x,y,z), _parcel)
+                #print("In Range: ", in_range)
+                if in_range is True:
+                    supported = self.bottom_supported(Point(x,y,0),_parcel)
+                    #print("Supported: ", supported)
+                    if supported is True:
+                        #print("(x,y,z): ", (x,y,z))
+                        xyzlist.append((x,y,z, r, h))
+                        #print("list: ", xyzlist)
+        # print("r", r)
+        # print("h", h)
 
-        #korr samme for loop
+        #print("xyzlist: ", xyzlist)
+
 
         if len(xyzlist) > 0:
             temp = xyzlist[0]
             for i in range(len(xyzlist)):
                 #print("temppp, ", temp)
                 #print("xyzlist", xyzlist[i])
+                #print("temp[4]", temp[4], "xyzlist[4]", xyzlist[i][4]) 
                 if xyzlist[i][2] < temp[2]:
                     temp = xyzlist[i]
-            print("parcel: ", _parcel.size.x, _parcel.size.y, _parcel.size.z)            
-            print("temp: ", temp)
+                    #print("new temp ", temp)
+                elif xyzlist[i][4] < temp[4] and xyzlist[i][2] <= temp[2]:
+                    temp = xyzlist[i]
+                    #print("new temp ", temp)
+            #print("parcel: ", _parcel.size.x, _parcel.size.y, _parcel.size.z)            
+            #print("temp: ", temp)
             #publish x,y,z coordinates
-            self.packing_pub(temp[0], temp[1], temp[2], _parcel.size.x, _parcel.size.y, _parcel.size.z)
-            for i in range(temp[0], temp[0] + _parcel.size.x): #x
-                for j in range(temp[1], temp[1] + _parcel.size.y): #y
-                    print("i, j: ", i, j)
-                    #print("sizes: ", parcel.size[0], " ", parcel.size[1])
-                    #print("wtf", i, " ", j)
-                    self.ws.height_map_array[i][j] = _parcel.size.z + temp[2]
+            #Fundet den laveste z-coordinate
+            if temp[3] == 0:
+                print("No rotation")
+            elif temp[3] == 1:
+                print("Rotated parcel 1 time")
+                original_parcel.rotate_parcel('z')
+            elif temp[3] == 2:
+                print("Rotated parcel 2 times")
+                original_parcel.rotate_parcel('z')   
+                original_parcel.rotate_parcel('y')    
+            elif temp[3] == 3:
+                print("Rotated parcel 3 times")
+                original_parcel.rotate_parcel('z')   
+                original_parcel.rotate_parcel('y')  
+                original_parcel.rotate_parcel('z') 
+            elif temp[3] == 4:
+                print("Rotated parcel 4 times")
+                original_parcel.rotate_parcel('z')   
+                original_parcel.rotate_parcel('y')  
+                original_parcel.rotate_parcel('z')
+                original_parcel.rotate_parcel('y')
+            elif temp[3] == 5:
+                print("Rotated parcel 5 times")
+                original_parcel.rotate_parcel('z')   
+                original_parcel.rotate_parcel('y')  
+                original_parcel.rotate_parcel('z')
+                original_parcel.rotate_parcel('y')
+                original_parcel.rotate_parcel('z')
+
+                
+            self.packing_pub(temp[0], temp[1], temp[2], original_parcel.size.x, original_parcel.size.y, original_parcel.size.z)
 
         elif len(xyzlist) <= 0:
             return False
@@ -168,6 +278,7 @@ class floor_building:
                             parcel.rotate_parcel('z')
                             if self.floor_building_algorithm(parcel) == False:
                                 print("Parcel cannot be packed into the roller cage")
+                                rospy.sleep(999)
         
     def packing_pub(self, pos_x, pos_y, pos_z, size_x, size_y, size_z):
         msg = Packing_info()
@@ -185,14 +296,7 @@ class floor_building:
 
 def main():
     rospy.init_node('floor_building_algorithm', anonymous=True)
-    ws = workspace(20, 20, 20) #Create a new instance of the workspace class
-
-    fb =  floor_building(ws) #Create a new instance of the first fit class
-
-    # p = parcel((0,0,0), (1,1,1))
-
-    # fb.floor_building_algorithm(p)
-
+    fb =  floor_building() #Create a new instance of the first fit class
     #spin
     rospy.spin()
 
