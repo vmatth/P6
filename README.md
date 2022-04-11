@@ -76,9 +76,12 @@ If you have CUDA set up:
 ./Protonect cuda
 ```
 
-### Build the workspace
+### Install dependencies and build the workspace
 ```
 cd ~/P6
+sudo apt update -qq
+rosdep update
+rosdep install --from-paths src --ignore-src -y
 catkin_make
 ```
 ### Source P6 workspace in ~/.bashrc (Restart your terminal after for bashrc to take effect)
