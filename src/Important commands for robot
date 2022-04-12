@@ -2,7 +2,7 @@
 source /home/axel/catkin_ws/devel/setup.bash
 
 %Launches robot with own calibration
-roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.27.23.88 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
+roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
 
 %In new tab, Prepares movement
 roslaunch ur5e_moveit_config ur5e_moveit_planning_execution.launch
