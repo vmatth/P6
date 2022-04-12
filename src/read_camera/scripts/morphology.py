@@ -6,7 +6,7 @@ import numpy as np
 import rospy
 from matplotlib import pyplot as plt
 import message_filters
-from read_camera.msg import Parcel
+from read_camera.msg import Parcel #Parcel msg
 
 class image_converter:
 
@@ -17,7 +17,7 @@ class image_converter:
         self.ts = message_filters.TimeSynchronizer([self.rgb_sub, self.depth_sub], 10)
         self.ts.registerCallback(self.camera_callback)
 
-        self.pub = rospy.Publisher('parcel_info', Parcel, queue_size=10)
+        self.pub = rospy.Publisher('/vision/parcel_raw', Parcel, queue_size=10)
 
         ###########################################################################
         ################################ SETUP ##################################
@@ -118,15 +118,15 @@ class image_converter:
     
     def parcel_pub(self, width, height, depth, angle, centerpoint_x, centerpoint_y):
         print("----------")
-        print("Publishing parcel to /parcel_info")
+        print("Publishing parcel to /vision/frame_acq/parcel_info")
         print("Parcel depth [cm]", depth)
         print("Parcel height [cm]", height)
         print("Parcel width [cm]", width)
         print("Parcel angle ", angle)
         msg = Parcel()
-        msg.width = width
-        msg.height = height
-        msg.depth = depth
+        msg.size.x = width
+        msg.size.z = height
+        msg.size.y = depth
         msg.angle = angle
         msg.centerpoint_x = centerpoint_x
         msg.centerpoint_y = centerpoint_y

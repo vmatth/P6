@@ -1,5 +1,5 @@
 %First, in every tab
-source /home/axel/catkin_ws/devel/setup.bash
+source /home/axel/P6/devel/setup.bash
 
 %Launches robot with own calibration
 roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
