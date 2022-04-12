@@ -124,9 +124,9 @@ class image_converter:
         print("Parcel width [cm]", width)
         print("Parcel angle ", angle)
         msg = Parcel()
-        msg.width = width
-        msg.height = height
-        msg.depth = depth
+        msg.size.x = width
+        msg.size.z = height
+        msg.size.y = depth
         msg.angle = angle
         msg.centerpoint_x = centerpoint_x
         msg.centerpoint_y = centerpoint_y
