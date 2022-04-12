@@ -21,6 +21,7 @@ class floor_building:
 
         self.workspace_size = Point(0, 0, 0)
         self.height_map = [[]]
+        self.list = []
         
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
         
