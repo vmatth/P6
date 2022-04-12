@@ -118,7 +118,7 @@ class image_converter:
     
     def parcel_pub(self, width, height, depth, angle, centerpoint_x, centerpoint_y):
         print("----------")
-        print("Publishing parcel to /parcel_info")
+        print("Publishing parcel to /vision/frame_acq/parcel_info")
         print("Parcel depth [cm]", depth)
         print("Parcel height [cm]", height)
         print("Parcel width [cm]", width)
