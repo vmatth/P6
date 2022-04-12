@@ -163,6 +163,7 @@ catkin_install_python(PROGRAMS
   scripts/depth_info.py
   scripts/image_acq.py
   scripts/separation.py
+  scripts/roller_cage.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
