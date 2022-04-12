@@ -27,7 +27,7 @@ class floor_building:
         
         #self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
         
-        rospy.Subscriber("/parcel_info", Parcel, self.parcel_callback)
+        rospy.Subscriber("/vision/frame_acq/parcel_info", Parcel, self.parcel_callback)
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
     
     
@@ -80,11 +80,15 @@ class floor_building:
             temp = self.height_map[pos_x][pos_y]
             for x in range(pos_x, pos_x + size_x):
                 for y in range(pos_y, pos_y + size_y):
+                    #Check for collision in the height map if z(x,y) > pos_z
+                    if self.height_map[x][y] > temp:
+                        #print("Collision")
+                        return False
                     if temp == self.height_map[x][y]: #Check if (x,y) coordinate is supported
-                            supported_pixels += 1
-                            #check if x, y is one of the corner pixels
-                            if (x,y) in corner_pixels:
-                                counter += 1
+                        supported_pixels += 1
+                        #check if x, y is one of the corner pixels
+                        if (x,y) in corner_pixels:
+                            counter += 1
             #print("supported pixel: ", supported_pixels)
             total_parcel_pixels = float(size_x) * float(size_y)
             #print("total: ", total_parcel_pixels)
@@ -116,7 +120,7 @@ class floor_building:
         for y in range(ws_y):
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
-                print("In range func | (xy): ", (x,y), "z: ", z)
+                #print("In range func | (xy): ", (x,y), "z: ", z)
                 # print("x: ", x, " | y:", y, " | z:", z) 
                 in_range = self.parcel_in_range(Point(x,y,z), _parcel)
                 #print("In Range: ", in_range)
@@ -268,18 +272,18 @@ class floor_building:
 
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
-            parcel.rotate_parcel('z')
-            if self.floor_building_algorithm(parcel) == False:
-                parcel.rotate_parcel('y')
-                if self.floor_building_algorithm(parcel) == False:
-                    parcel.rotate_parcel('z')
-                    if self.floor_building_algorithm(parcel) == False:
-                        parcel.rotate_parcel('y')
-                        if self.floor_building_algorithm(parcel) == False:
-                            parcel.rotate_parcel('z')
-                            if self.floor_building_algorithm(parcel) == False:
-                                print("Parcel cannot be packed into the roller cage")
-                                rospy.sleep(999)
+            # parcel.rotate_parcel('z')
+            # if self.floor_building_algorithm(parcel) == False:
+            #     parcel.rotate_parcel('y')
+            #     if self.floor_building_algorithm(parcel) == False:
+            #         parcel.rotate_parcel('z')
+            #         if self.floor_building_algorithm(parcel) == False:
+            #             parcel.rotate_parcel('y')
+            #             if self.floor_building_algorithm(parcel) == False:
+            #                 parcel.rotate_parcel('z')
+            #                 if self.floor_building_algorithm(parcel) == False:
+            print("Parcel cannot be packed into the roller cage")
+            rospy.sleep(999)
         
     def packing_pub(self, pos_x, pos_y, pos_z, size_x, size_y, size_z):
         msg = Packing_info()

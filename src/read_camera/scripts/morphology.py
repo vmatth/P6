@@ -6,7 +6,7 @@ import numpy as np
 import rospy
 from matplotlib import pyplot as plt
 import message_filters
-from read_camera.msg import Parcel
+from read_camera.msg import Parcel #Parcel msg
 
 class image_converter:
 
@@ -17,7 +17,7 @@ class image_converter:
         self.ts = message_filters.TimeSynchronizer([self.rgb_sub, self.depth_sub], 10)
         self.ts.registerCallback(self.camera_callback)
 
-        self.pub = rospy.Publisher('parcel_info', Parcel, queue_size=10)
+        self.pub = rospy.Publisher('/vision/parcel_raw', Parcel, queue_size=10)
 
         ###########################################################################
         ################################ SETUP ##################################

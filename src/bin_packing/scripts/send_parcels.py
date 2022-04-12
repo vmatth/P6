@@ -16,15 +16,13 @@ from bin_packing.msg import Workspace #workspace msg
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 import random
 
-def generate_parcels(pub):
-    random.seed(69) 
+# def generate_parcels(pub):
+    
 
-    for i in range(90): 
+#     for i in range(4): 
+#         rospy.sleep(1.5)
 
-        packing_pub(Point(random.randrange(18,45),random.randrange(18,45), random.randrange(18,45)), pub)
-        rospy.sleep(0.3)
-
-def packing_pub(size, pub):
+def packing_pub(size):
     msg = Parcel()
 
     msg.size = size
@@ -34,14 +32,21 @@ def packing_pub(size, pub):
     pub.publish(msg)
     print("Publishing to /parcel_info")
 
+def add_parcel(data):
+    rospy.loginfo(rospy.get_caller_id() + "Workspace received new parcel %s", data)
+    rospy.sleep(1)
+    packing_pub(Point(random.randrange(3,7),random.randrange(3,7), random.randrange(3,7)))
 
-
+pub = rospy.Publisher('/parcel_info', Parcel, queue_size=10)
 def main():
+    random.seed(8)
     rospy.init_node('send_parcels', anonymous=True)
+    sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel)
     pub = rospy.Publisher('/parcel_info', Parcel, queue_size=10)
     rospy.sleep(2)
-    generate_parcels(pub)
-
+    packing_pub(Point(random.randrange(3,7),random.randrange(3,7), random.randrange(3,7)))
+    #generate_parcels(pub)
+    rospy.spin()
 
 if __name__ == '__main__':
     main()

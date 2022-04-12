@@ -1,7 +1,8 @@
 <launch>
   <node name="rc_visualization" pkg="bin_packing" type="rc_visualization.py" output="screen"></node>
   <node name="floor_building_algorithm" pkg="bin_packing" type="floor_building_algorithm.py" output="screen"></node>
+  <!--node name="first_fit_algorithm" pkg="bin_packing" type="first_fit_algorithm.py" output="screen"></node>-->
 
   <arg name="node_start_delay" default="2.0" />  
-  <node name="workspace" pkg="bin_packing" type="workspace.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+  <node name="workspace" pkg="bin_packing" type="workspace.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
 </launch>
