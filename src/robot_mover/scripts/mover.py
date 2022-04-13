@@ -77,8 +77,7 @@ def main():
     #group.go(joint_goal, wait=True)
 
 
-    rospy.spin()
-
+    rospy.spin()    
 
 
 if __name__ == '__main__':
