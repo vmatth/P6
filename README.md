@@ -117,4 +117,19 @@ Choose static IP address, e.g 172.22.22.1
 
 Add the computer's IP address to the UR5 using the controller
 
+## Import module errors when running python scripts
+If the following error occurs:
+```
+No module named imageio
+```
+Download imageio version 2.6.1 here:
+
+https://github.com/imageio/imageio/tree/v2.6.1
+
+Extract the files and install the module. (At the imageio folder directory)
+```
+sudo python setup.py install
+```
+
+
 
