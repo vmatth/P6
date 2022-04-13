@@ -9,6 +9,7 @@ from math import pi
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from geometry_msgs.msg import Pose
+from read_camera.msg import Parcel #Parcel msg
 
 #class here
 class mover:
@@ -36,16 +37,22 @@ class mover:
 
         print("Robot State: ", robot.get_current_state())
     
-        rospy.Subscriber("pose_info", Pose, self.movement_callback)
+        rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
+
+        pose_camera_x = 69
+        pose_camera_y = 420
 
 
-    def movement_callback(self, pose):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", pose)
+    def movement_callback(self, Parcel):
+        rospy.loginfo(rospy.get_caller_id() + "I heard %s", Parcel)
         pose_goal = geometry_msgs.msg.Pose()
-        pose_goal.orientation.w = pose.orientation.w
-        pose_goal.position.x = pose.position.x
-        pose_goal.position.y = pose.position.y
-        pose_goal.position.z = pose.position.z
+        #pose_goal.orientation.w = 0        
+        pose_goal.orientation.x = 0
+        pose_goal.orientation.y = 0
+        pose_goal.orientation.z = Parcel.angle
+        pose_goal.position.x = Parcel.centerpoint_x
+        pose_goal.position.y = Parcel.centerpoint_y
+        pose_goal.position.z = Parcel.centerpoint_z
         self.group.set_pose_target(pose_goal)
 
         plan = self.group.go(wait=True)
