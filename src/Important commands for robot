@@ -10,3 +10,10 @@ roslaunch ur5e_moveit_config ur5e_moveit_planning_execution.launch
 %In new tab, opens rviz with MoveIt!
 roslaunch ur5e_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5e_moveit_config)/launch/moveit.rviz
 
+%You can also move with
+rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller
+
+%Which requires installation:
+sudo apt install ros-<ROS-DISTRO>-rqt-joint-trajectory-controller
+
+
