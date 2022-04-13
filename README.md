@@ -122,7 +122,7 @@ If the following error occurs:
 ```
 No module named imageio
 ```
-Download imageio version 2.6.1 here:
+Download imageio version 2.6.1 as a ZIP file at
 
 https://github.com/imageio/imageio/tree/v2.6.1
 
