@@ -62,7 +62,7 @@ echo "/usr/local/cuda/lib64" | sudo tee /etc/ld.so.conf.d/cuda.conf
 sudo ldconfig
 ```
 
-### Test Kinect2 (If you receive USB errors try to restart your computer)
+### Test Kinect2 (Only works on USB 3.0)
 
 Connect Kinect2 and test the camera using libfreenect2:
 
@@ -99,19 +99,22 @@ roslaunch kinect2_bridge kinect2_bridge.launch
 
 ### Setup UR5 network:
 
-Navigate to Setup Robot / Setup Network
+Connect the UR5 and PC using an Ethernet cable
 
-Check Static Address
+Using the UR5 controller:
 
-Input a reasonable IP address, e.g. 172.22.22.2
+  Navigate to Setup Robot / Setup Network
 
-Input Netmask as 255.255.255.0, Gateway and DNS server as 0.0.0.0
+  Check Static Address
 
-Setup wired PC network:
+  Input a reasonable IP address, e.g. 172.22.22.2
+
+  Input Netmask as 255.255.255.0, Gateway and DNS server as 0.0.0.0
+
+### Setup wired PC network:
 
 Choose static IP address, e.g 172.22.22.1
 
 Add the computer's IP address to the UR5 using the controller
 
-Connect the UR5 and PC using an Ethernet cable
 

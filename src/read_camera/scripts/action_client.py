@@ -15,7 +15,7 @@ import trajectory_msgs.msg
 def UR5e_client():
     # Creates the SimpleActionClient, passing the type of the action
     # (FibonacciAction) to the constructor.
-    client = actionlib.SimpleActionClient('UR5e_trajectory', control_msgs.msg.FollowJointTrajectoryAction)
+    client = actionlib.SimpleActionClient('scaled_pos_joint_traj_controller/follow_joint_trajectory', control_msgs.msg.FollowJointTrajectoryAction)
 
     # Waits until the action server has started up and started
     # listening for goals.

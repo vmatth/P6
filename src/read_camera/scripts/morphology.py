@@ -10,7 +10,7 @@ from read_camera.msg import Parcel #Parcel msg
 
 class image_converter:
 
-    def __init__(self):
+        
         self.bridge = CvBridge()
         self.rgb_sub = message_filters.Subscriber("/kinect2/hd/image_color", Image)
         self.depth_sub = message_filters.Subscriber("/kinect2/hd/image_depth_rect", Image)
