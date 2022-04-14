@@ -39,8 +39,11 @@ class mover:
     
         rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
 
-        pose_camera_x = 69
-        pose_camera_y = 420
+        pose_camera_x = -10.5
+        pose_camera_y = 54
+        pose_camera_z = 102
+
+        transform_camera = [-1,0,0]
 
 
     def movement_callback(self, Parcel):

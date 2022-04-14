@@ -10,7 +10,7 @@ from read_camera.msg import Parcel #Parcel msg
 
 class image_converter:
 
-        
+    def __init__(self): 
         self.bridge = CvBridge()
         self.rgb_sub = message_filters.Subscriber("/kinect2/hd/image_color", Image)
         self.depth_sub = message_filters.Subscriber("/kinect2/hd/image_depth_rect", Image)
@@ -27,7 +27,8 @@ class image_converter:
         self.pix_per_cm = 10.2
 
         #Skal kalibreres hver gang setup aendres.
-        self.cam_height = 111.5
+        self.cam_height = 102.5
+
 
     def camera_callback(self, rgb_data, depth_data):
         rospy.loginfo("Receiving info from image topic!")
@@ -84,11 +85,11 @@ class image_converter:
                     #Calculate dimensions & angle
                     distance_to_parcel = (depth_image[centerpoint_x][centerpoint_y]-150) / 10 #Calculate distance in [cm] 
                     width = (rect[1][1])/self.pix_per_cm
-                    height = (rect[1][0])/self.pix_per_cm
-                    depth = self.cam_height - distance_to_parcel
+                    length = (rect[1][0])/self.pix_per_cm
+                    heigth = self.cam_height - distance_to_parcel
                     angle = rect[2]
                     #Call parcel_pub function
-                    self.parcel_pub((rect[1][1])/self.pix_per_cm, (rect[1][0])/self.pix_per_cm, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y)
+                    self.parcel_pub((rect[1][1])/self.pix_per_cm, (rect[1][0])/self.pix_per_cm, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
                     #Overlay centerpoint and contours to rgb and depth images
                     cv2.drawContours(rgb_overlay,[box],0,(0,0,255),2)
                     rgb_overlay = cv2.circle(rgb_overlay, centerpoint, radius=3, color=(0, 255, 0), thickness=-1)
@@ -116,25 +117,24 @@ class image_converter:
     
 
     
-    def parcel_pub(self, width, height, depth, angle, centerpoint_x, centerpoint_y):
+    def parcel_pub(self, width, length, height, angle, centerpoint_x, centerpoint_y, distance_to_parcel):
         print("----------")
         print("Publishing parcel to /vision/parcel_raw")
-        print("Parcel depth [cm]", depth)
-        print("Parcel height [cm]", height)
         print("Parcel width [cm]", width)
+        print("Parcel length [cm]", length)
+        print("Parcel height [cm]", height)
         print("Parcel angle ", angle)
         msg = Parcel()
         msg.size.x = width
+        msg.size.y = length
         msg.size.z = height
-        msg.size.y = depth
         msg.angle = angle
         
         #msg.centerpoint_x = centerpoint_x
         #msg.centerpoint_y = centerpoint_y
-        msg.centerpoint_z = height
-
-        msg.centerpoint_x = centerpoint_x / self.pix_pr_cm
-        msg.centerpoint_y = centerpoint_y / self.pix_pr_cm
+        msg.centerpoint.z = distance_to_parcel
+        msg.centerpoint.x = centerpoint_x / self.pix_pr_cm
+        msg.centerpoint.y = centerpoint_y / self.pix_pr_cm
 
         
         self.pub.publish(msg)
