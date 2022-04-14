@@ -41,6 +41,15 @@ class mover:
     
         rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
 
+        box_pose = geometry_msgs.msg.PoseStamped()
+        box_pose.header.frame_id = "world"
+        box_pose.pose.orientation.w = 1.0
+        box_pose.pose.position.x = 0
+        box_pose.pose.position.y = 0.155
+        box_pose.pose.position.z = -0.05
+        box_name = "box"
+        scene.add_box(box_name, box_pose, size=(42, 0.93, 0.05))
+
 
         #transform_camera = [1, 0, 0, -0.1
         #                     0, -1, 0, 0.54
@@ -58,9 +67,12 @@ class mover:
         #pose_goal.position.z = Parcel.centerpoint.z
         #print("wtf",Parcel.centerpoint.x/100*-1)
         #Calculate goal pos using the transformation frame. Converts from cm to m
-        pose_goal.position.x = (Parcel.centerpoint.x / 100 *  1) + 0.1
-        pose_goal.position.y = (Parcel.centerpoint.y / 100 * -1) + 0.54
-        pose_goal.position.z = (Parcel.centerpoint.z / 100 * -1) + 1.02
+        # pose_goal.position.x = (Parcel.centerpoint.x / 100 *  1) + 0.1
+        # pose_goal.position.y = (Parcel.centerpoint.y / 100 * -1) + 0.54
+        # pose_goal.position.z = (Parcel.centerpoint.z / 100 * -1) + 1.02
+        pose_goal.position.x = Parcel.centerpoint.x
+        pose_goal.position.y = Parcel.centerpoint.y
+        pose_goal.position.z = Parcel.centerpoint.z
         print("pls go to: ", pose_goal)
         self.group.set_pose_target(pose_goal)
 
