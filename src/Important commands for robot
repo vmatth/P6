@@ -1,20 +1,25 @@
-%PHYSICAL ROBOT
+%%%%%%%%%%%%%%%PHYSICAL ROBOT
 %Launches robot with own calibration (for physical robot)
 roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
-
-
-
-%SIMULATION ROBOT
-%Can also be launched in Gazebo (Simulation)
-roslaunch ur_gazebo ur5_bringup.launch limited:=true
-
-
-
-
-
 %PREPARE MOVEMENT (in new tab)
 roslaunch ur5e_moveit_config ur5e_moveit_planning_execution.launch
-%If you are simulating set the parameters sim:=true limited:=true
+
+
+
+%%%%%%%%%%%%%%SIMULATION ROBOT
+%Can also be launched in Gazebo (Simulation)
+roslaunch ur_gazebo ur5_bringup.launch limited:=true
+%PREPARE MOVEMENT (in new tab)
+roslaunch ur5e_moveit_config ur5e_moveit_planning_execution.launch sim:=true limited:=true
+
+
+
+
+
+
+
+
+
 
 
 %VIZUALIZE IN RVIZ
@@ -24,7 +29,7 @@ roslaunch ur5e_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5e
 rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller
 
 %Which requires installation:
-sudo apt install ros-<ROS-DISTRO>-rqt-joint-trajectory-controller
+sudo apt install ros-melodic-rqt-joint-trajectory-controller
 
 
 

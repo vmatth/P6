@@ -36,26 +36,32 @@ class mover:
         print("Robot Groups: ", robot.get_group_names())
 
         print("Robot State: ", robot.get_current_state())
+
+        print("Robot Pose: ", self.group.get_current_pose())
     
         rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
 
-        pose_camera_x = -10.5
-        pose_camera_y = 54
-        pose_camera_z = 102
 
-        transform_camera = [-1,0,0]
-
+        #transform_camera = [1, 0, 0, -0.1
+        #                     0, -1, 0, 0.54
+        #                     0, 0,-1, 1.02]
 
     def movement_callback(self, Parcel):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", Parcel)
         pose_goal = geometry_msgs.msg.Pose()
-        #pose_goal.orientation.w = 0        
-        pose_goal.orientation.x = 0
-        pose_goal.orientation.y = 0
-        pose_goal.orientation.z = Parcel.angle
-        pose_goal.position.x = Parcel.centerpoint_x
-        pose_goal.position.y = Parcel.centerpoint_y
-        pose_goal.position.z = Parcel.centerpoint_z
+        pose_goal.orientation.w = 0.0
+        pose_goal.orientation.x = 0.7071
+        pose_goal.orientation.y = -0.7071
+        pose_goal.orientation.z = 0.0 #Parcel.angle
+        #pose_goal.position.x = Parcel.centerpoint.x
+        #pose_goal.position.y = Parcel.centerpoint.y
+        #pose_goal.position.z = Parcel.centerpoint.z
+        #print("wtf",Parcel.centerpoint.x/100*-1)
+        #Calculate goal pos using the transformation frame. Converts from cm to m
+        pose_goal.position.x = (Parcel.centerpoint.x / 100 *  1) + 0.1
+        pose_goal.position.y = (Parcel.centerpoint.y / 100 * -1) + 0.54
+        pose_goal.position.z = (Parcel.centerpoint.z / 100 * -1) + 1.02
+        print("pls go to: ", pose_goal)
         self.group.set_pose_target(pose_goal)
 
         plan = self.group.go(wait=True)
