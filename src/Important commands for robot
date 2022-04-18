@@ -4,6 +4,9 @@ roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_co
 %PREPARE MOVEMENT (in new tab)
 roslaunch ur5e_moveit_config ur5e_moveit_planning_execution.launch
 
+%VISUALIZE IN RVIZ
+rosrun rviz rviz -d P6/src/robot_mover/ur5_real.rviz 
+
 
 
 %%%%%%%%%%%%%%SIMULATION ROBOT
