@@ -68,12 +68,12 @@ mesh_files:
 
   #end_effector:
     #visual:
-      #mesh:
+      #mesh: "package://ur_description/meshes/ur5/visual/end_effector.dae"
       #material:
         #name: ""
         #color: ""
     #collision::
-      #mesh: ""
+      #mesh: "package://ur_description/meshes/ur5/collision/end_effector.stl"
     #visual_offset:
 
 
