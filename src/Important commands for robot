@@ -2,31 +2,31 @@
 %Launches robot with own calibration (for physical robot)
 roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
 %PREPARE MOVEMENT (in new tab)
-roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch
+%roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch
+roslaunch ur5_config ur5_moveit_planning_execution.launch 
 
 %VISUALIZE IN RVIZ
 rosrun rviz rviz -d P6/src/robot_mover/ur5_real.rviz 
-
-
 
 %%%%%%%%%%%%%%SIMULATION ROBOT
 %Can also be launched in Gazebo (Simulation)
 roslaunch ur_gazebo ur5_bringup.launch limited:=true
 %PREPARE MOVEMENT (in new tab)
-roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch sim:=true limited:=true
+%roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch sim:=true limited:=true
+
+roslaunch ur5_config ur5_moveit_planning_execution.launch sim:=true limited:=true
 
 
+%%%%%%%%%%%Move It Config
 
-
-
-
-
-
-
+%Edit the move it config using
+roslaunch ur5_config setup_assistant.launch
 
 
 %VIZUALIZE AND PLAN TRAJECTORY IN RVIZ
 roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_moveit_config)/launch/moveit.rviz
+roslaunch ur5_config ur5_moveit_planning_execution.launch sim:=true limited:=true
+ 
 
 %You can also move using a GUI:
 rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller
