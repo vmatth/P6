@@ -65,3 +65,15 @@ mesh_files:
     collision:
       mesh: "package://ur_description/meshes/ur5/collision/wrist3.stl"
     visual_offset: -0.0818
+
+  #end_effector:
+    #visual:
+      #mesh:
+      #material:
+        #name: ""
+        #color: ""
+    #collision::
+      #mesh: ""
+    #visual_offset:
+
+
