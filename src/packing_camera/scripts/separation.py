@@ -13,7 +13,7 @@ class image_converter:
     def __init__(self):
         self.bridge = CvBridge()
         self.rgb_sub = message_filters.Subscriber("/kinect2/hd/image_color", Image)
-        #self.depth_sub = message_filters.Subscriber("/kinect2/hd/image_depth_rect", Image)
+        self.depth_sub = message_filters.Subscriber("/kinect2/hd/image_depth_rect", Image)
         self.ts = message_filters.TimeSynchronizer([self.rgb_sub, self.depth_sub], 10)
         self.ts.registerCallback(self.camera_callback)
 
@@ -24,7 +24,7 @@ class image_converter:
         ##########################################################################
         
 
-    def camera_callback(self, rgb_data):
+    def camera_callback(self, rgb_data, depth_data):
         rospy.loginfo("Receiving info from image topic!")
         try:
             #Get rgb & depth images for this frame
