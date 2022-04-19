@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   moveit_commander
-  moveit
+  ##moveit
 )
 
 ## System dependencies are found with CMake's conventions
