@@ -17,6 +17,20 @@ class depth_detect:
         self.distance_threshold = 99 #distancer higher than this are removed
         self.threshold_tolerance = 0 #cm
         self.pix_per_cm = 11.4 #pix / cm
+        self.depth_list = []
+        self.counter = 0
+
+
+    def calibrate_cam_height(self, depth_data):
+        depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
+        #print("depth data: ", depth_image[300][300])
+        counter =+1 
+        self.depth_list.append(depth_image[300][300])
+        print("depth list: ", self.depth_list)
+        if counter == 10:
+            print("depth list: ", self.depth_list)
+            return False
+        
 
 
     def callback(self, depth_data):
@@ -33,6 +47,8 @@ class depth_detect:
             # print("Wall depth: ", distance_to_parcel)
             # #draw circle
             # depth_image = cv2.circle(depth_image, (300,300), radius=3, color=(255, 255, 255), thickness=-1)
+
+            self.calibrate_cam_height(depth_data)
 
             threshold_image = depth_image.copy()
             #loop all x y pixels
@@ -90,6 +106,8 @@ class depth_detect:
                         #Overlay centerpoint and contours to rgb and depth images
                         cv2.drawContours(converted_image,[box],0,(255,255,255),2)
                         converted_image = cv2.circle(converted_image, centerpoint, radius=3, color=(255, 255, 255), thickness=-1)
+                        #converted_image = cv2.circle(converted_image, [300][300], radius=3, color=(255,255,255), thickness=1)
+                        cv2.circle(depth_image, (300, 300), 3, (10000, 10000, 10000), -1)
 
                 i = i + 1
 
