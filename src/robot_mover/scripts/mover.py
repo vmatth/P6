@@ -58,14 +58,10 @@ class mover:
     def movement_callback(self, Parcel):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", Parcel)
         pose_goal = geometry_msgs.msg.Pose()
-        # pose_goal.orientation.x = -0.033#0.7071
-        # pose_goal.orientation.y = 0.70631#0.7071
-        # pose_goal.orientation.z = -0.70631 #Parcel.angle
+        pose_goal.orientation.x = -0.033#0.7071
+        pose_goal.orientation.y = 0.70631#0.7071
+        pose_goal.orientation.z = -0.70631 #Parcel.angle
         pose_goal.orientation.w = 1.0
-        #pose_goal.positiosffsfhhjhjhjn.x = Parcel.centerpoint.x
-        #pose_goal.position.y = Parcel.centerpoint.y
-        #pose_goal.position.z = Parcel.centerpoint.z
-        #print("wtf",Parcel.centerpoint.x/100*-1)
         #Calculate goal pos using the transformation frame. Converts from cm to m
         # pose_goal.position.x = (Parcel.centerpoint.x / 100 *  1) + 0.1
         # pose_goal.position.y = (Parcel.centerpoint.y / 100 * -1) + 0.54
@@ -76,7 +72,6 @@ class mover:
         print("pls go to: ", pose_goal)
         self.group.set_pose_target(pose_goal)
 
-        #input("boi")
         
         plan = self.group.go(wait=True)
         # Calling ``stop()`` ensures that there is no residual movement
