@@ -39,7 +39,8 @@ class mover:
 
         print("Robot Pose: ", self.group.get_current_pose())
     
-        rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
+        #rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
+        rospy.Subscriber("/robot/pose", Pose, self.movement_callback)
 
         box_pose = geometry_msgs.msg.PoseStamped()
         box_pose.header.frame_id = "base"
@@ -55,37 +56,80 @@ class mover:
         #                     0, -1, 0, 0.54
         #                     0, 0,-1, 1.02]
 
-    def movement_callback(self, Parcel):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", Parcel)
-        pose_goal = geometry_msgs.msg.Pose()
-        # pose_goal.orientation.x = -0.033#0.7071
-        # pose_goal.orientation.y = 0.70631#0.7071
-        # pose_goal.orientation.z = -0.70631 #Parcel.angle
-        pose_goal.orientation.w = 1.0
-        #pose_goal.positiosffsfhhjhjhjn.x = Parcel.centerpoint.x
-        #pose_goal.position.y = Parcel.centerpoint.y
-        #pose_goal.position.z = Parcel.centerpoint.z
-        #print("wtf",Parcel.centerpoint.x/100*-1)
-        #Calculate goal pos using the transformation frame. Converts from cm to m
-        # pose_goal.position.x = (Parcel.centerpoint.x / 100 *  1) + 0.1
-        # pose_goal.position.y = (Parcel.centerpoint.y / 100 * -1) + 0.54
-        # pose_goal.position.z = (Parcel.centerpoint.z / 100 * -1) + 1.02 #0.0 -0.20 1<<
-        pose_goal.position.x = Parcel.centerpoint.x
-        pose_goal.position.y = Parcel.centerpoint.y
-        pose_goal.position.z = Parcel.centerpoint.z
-        print("pls go to: ", pose_goal)
-        self.group.set_pose_target(pose_goal)
+    def movement_callback(self, pose):
+        # rospy.loginfo(rospy.get_caller_id() + "I heard %s", pose)
+        # # pose_goal = geometry_msgs.msg.Pose()
+        # # # pose_goal.orientation.x = -0.033#0.7071
+        # # # pose_goal.orientation.y = 0.70631#0.7071
+        # # # pose_goal.orientation.z = -0.70631 #Parcel.angle
+        # # pose_goal.orientation.w = 1.0
+        # # #pose_goal.positiosffsfhhjhjhjn.x = Parcel.centerpoint.x
+        # # #pose_goal.position.y = Parcel.centerpoint.y
+        # # #pose_goal.position.z = Parcel.centerpoint.z
+        # # #print("wtf",Parcel.centerpoint.x/100*-1)
+        # # #Calculate goal pos using the transformation frame. Converts from cm to m
+        # # # pose_goal.position.x = (Parcel.centerpoint.x / 100 *  1) + 0.1
+        # # # pose_goal.position.y = (Parcel.centerpoint.y / 100 * -1) + 0.54
+        # # # pose_goal.position.z = (Parcel.centerpoint.z / 100 * -1) + 1.02 #0.0 -0.20 1<<
+        # # pose_goal.position.x = Parcel.centerpoint.x
+        # # pose_goal.position.y = Parcel.centerpoint.y
+        # # pose_goal.position.z = Parcel.centerpoint.z
+        # print("pls go to: ", pose)
+        # self.group.set_pose_target(pose)
 
-        #input("boi")
+
         
-        plan = self.group.go(wait=True)
-        # Calling ``stop()`` ensures that there is no residual movement
-        self.group.stop()
+        # plan = self.group.go(wait=True)
+        # # Calling ``stop()`` ensures that there is no residual movement
+        # self.group.stop()
 
 
-        # It is always good to clear your targets after planning with poses.
-        # Note: there is no equivalent function for clear_joint_value_targets()
-        self.group.clear_pose_targets()
+        # # It is always good to clear your targets after planning with poses.
+        # # Note: there is no equivalent function for clear_joint_value_targets()
+        # self.group.clear_pose_targets()
+        # print("arrived!")
+        plan, frac = self.damn()
+        self.group.execute(plan, wait=True)
+        print("arrived")
+
+
+
+    def damn(self):
+        print("cartesian paths")
+        waypoints = []
+        scale = 1.0
+
+
+        wpose = self.group.get_current_pose().pose
+        print("current pose", wpose)
+        wpose.position.x = 0
+        wpose.position.y = -0.4
+        wpose.position.y = 0.5
+        waypoints.append(copy.deepcopy(wpose))
+
+        # wpose = self.group.get_current_pose().pose
+        # wpose.position.x = 0.2
+        # wpose.position.y = -0.2
+        # wpose.position.y = 0.5
+        # waypoints.append(copy.deepcopy(wpose))
+
+        # wpose = self.group.get_current_pose().pose
+        # wpose.position.x = 0.4
+        # wpose.position.y = 0.0
+        # wpose.position.y = 0.5
+        # waypoints.append(copy.deepcopy(wpose))
+
+        # We want the Cartesian path to be interpolated at a resolution of 1 cm
+        # which is why we will specify 0.01 as the eef_step in Cartesian
+        # translation.  We will disable the jump threshold by setting it to 0.0,
+        # ignoring the check for infeasible jumps in joint space, which is sufficient
+        # for this tutorial.
+        (plan, fraction) = self.group.compute_cartesian_path(
+            waypoints, 0.01, 0.0  # waypoints to follow  # eef_step
+        )  # jump_threshold
+
+        # Note: We are just planning, not asking move_group to actually move the robot yet:
+        return plan, fraction
 
 def main():
     #lav en instance af klassen
