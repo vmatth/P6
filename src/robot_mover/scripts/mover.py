@@ -50,20 +50,6 @@ class mover:
         box_name = "table"
         scene.add_box(box_name, box_pose, size=(0.42, 0.93, 0.05))
 
-        gripper_pose = geometry_msgs.msg.PoseStamped()
-        gripper_pose.header.frame_id = "wrist_3_link"
-        gripper_pose.pose.orientation.w = 1.0
-        gripper_pose.pose.position.x = 0
-        gripper_pose.pose.position.y = 0
-        gripper_pose.pose.position.z = 0.035
-        gripper_name = "gripper"
-        scene.add_box(gripper_name, gripper_pose, size=(0.07, 0.08, 0.095))
-
-        grasping_group="manipulator"
-        touch_links = self.robot.get_link_names(group=grasping_group)
-        scene.attach_box(eef_link, gripper_name, touch_links=touch_links)
-
-
 
         #transform_camera = [1, 0, 0, -0.1
         #                     0, -1, 0, 0.54
@@ -72,18 +58,18 @@ class mover:
     def movement_callback(self, Parcel):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", Parcel)
         pose_goal = geometry_msgs.msg.Pose()
+        # pose_goal.orientation.x = -0.033#0.7071
+        # pose_goal.orientation.y = 0.70631#0.7071
+        # pose_goal.orientation.z = -0.70631 #Parcel.angle
         pose_goal.orientation.w = 1.0
-        pose_goal.orientation.x = 0.0#0.7071
-        pose_goal.orientation.y = 0.0#0.7071
-        pose_goal.orientation.z = 0.0 #Parcel.angle
-        #pose_goal.position.x = Parcel.centerpoint.x
+        #pose_goal.positiosffsfhhjhjhjn.x = Parcel.centerpoint.x
         #pose_goal.position.y = Parcel.centerpoint.y
         #pose_goal.position.z = Parcel.centerpoint.z
         #print("wtf",Parcel.centerpoint.x/100*-1)
         #Calculate goal pos using the transformation frame. Converts from cm to m
         # pose_goal.position.x = (Parcel.centerpoint.x / 100 *  1) + 0.1
         # pose_goal.position.y = (Parcel.centerpoint.y / 100 * -1) + 0.54
-        # pose_goal.position.z = (Parcel.centerpoint.z / 100 * -1) + 1.02
+        # pose_goal.position.z = (Parcel.centerpoint.z / 100 * -1) + 1.02 #0.0 -0.20 1<<
         pose_goal.position.x = Parcel.centerpoint.x
         pose_goal.position.y = Parcel.centerpoint.y
         pose_goal.position.z = Parcel.centerpoint.z
