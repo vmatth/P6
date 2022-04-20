@@ -7,6 +7,8 @@ from bin_packing.msg import Packing_info #Packing msg
 from bin_packing.msg import Height_Map_Row
 from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import MultiArrayLayout
+from bin_packing.convertTo2DArray import convertTo2DArray #convert function
+from bin_packing.convertTo2DArray import convertToMultiArray #convert function
 
 class workspace:
     def __init__ (self, x, y, z):
@@ -16,6 +18,7 @@ class workspace:
         self.height_map = [[0.0 for i in range(y)] for j in range(x)] 
         self.sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, self.add_parcel)
         self.pub = rospy.Publisher("/workspace/info", Workspace, queue_size=10, latch=True)
+        self.sub = rospy.Subscriber("/workspace/update_height_map", Workspace, self.heightmap_callback)
 
         self.update_workspace()
 
@@ -33,17 +36,12 @@ class workspace:
             
         self.update_workspace()
         
+    #Workspace is updated each time a new parcel is added.
     def update_workspace(self):
         msg = Workspace()
         msg.size = self.workspace_size
 
-        hm = []
-
-
-        for x in range(0, self.workspace_size.x):
-            hm_row = Height_Map_Row()
-            hm_row.row_data = self.height_map[x]
-            hm.append(hm_row)
+        hm = convertToMultiArray(self.height_map, self.workspace_size.x)
 
         msg.height_map = hm
         msg.parcels = self.parcels
@@ -73,6 +71,13 @@ class workspace:
             #calculate the workspace volume
 
         #calculate fill-rate V_parcels/V_workspace *100
+
+    def heightmap_callback(self, data):
+        print("Height map updated with size: ", data.size)
+        print("receivin hm", data.height_map)
+        self.workspace_size = data.size
+        self.height_map = convertTo2DArray(data.height_map, False)
+        self.update_workspace()
 
 
 def main():

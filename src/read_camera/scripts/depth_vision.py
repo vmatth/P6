@@ -13,18 +13,20 @@ class depth_detect:
         self.sub = rospy.Subscriber("/kinect2/hd/image_depth_rect", Image, self.callback)
         self.pub = rospy.Publisher('/vision/parcel_raw', Parcel, queue_size=10)
 
-        self.cam_height = 117
+        self.cam_height = 104.1 #cm
+        self.distance_threshold = 99 #distancer higher than this are removed
         self.threshold_tolerance = 0 #cm
-        self.pix_per_cm = 16.5 #pix / cm
+        self.pix_per_cm = 11.4 #pix / cm
 
 
     def callback(self, depth_data):
         #rospy.loginfo(rospy.get_caller_id() + "I heard %s", depth_data.data)    
         try:    
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
-            depth_image = depth_image[263:785, 635:1058]   
+            depth_image = depth_image[175:925, 635:1375]   #[y,x]
             height = depth_image.shape[0]
             width = depth_image.shape[1]
+            print("hheight width", height, width)
 
             # #get distance to a pixel
             # distance_to_parcel = depth_image[300][300] #Calculate distance in [cm] 
@@ -36,7 +38,7 @@ class depth_detect:
             #loop all x y pixels
             for y in range(0,height):
                 for x in range(0, width):
-                    if depth_image[y, x] >= self.cam_height * 10:
+                    if depth_image[y, x] >= self.distance_threshold * 10:
                         threshold_image[y, x] = 0
                     else:
                         threshold_image[y, x] = 10000 #10 meters (should be white)
@@ -46,6 +48,7 @@ class depth_detect:
             converted_image = (threshold_image/256).astype('uint8')
         
 
+
             #Find contours
             _, contours, _= cv2.findContours(converted_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -53,7 +56,7 @@ class depth_detect:
             i = 0
             for cnt in contours:
                 area = cv2.contourArea(contours[i])
-                if area > 500: #and area < 130000:
+                if area > 3000: #and area < 130000:
                     print("------------------")
                     #print("Parcel [",i,"] found")
                     print("area: ", area)
