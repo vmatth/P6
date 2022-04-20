@@ -5,6 +5,8 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 from read_camera.msg import Parcel #Parcel msg
+import math
+import imutils
 
 class depth_detect:
     def __init__(self):
@@ -31,24 +33,34 @@ class depth_detect:
             print("depth list: ", self.depth_list)
             return False
         
+    def is_contour_bad(self, cnt):
+        area = cv2.contourArea(cnt)
+        print("area: ", area)
+        peri = cv2.arcLength(cnt, True)
+        print("perimeter: ", peri)
+        circularity = 4 * math.pi * area /(peri)**2
+        print("circularity :", circularity)
+
+
 
 
     def callback(self, depth_data):
         #rospy.loginfo(rospy.get_caller_id() + "I heard %s", depth_data.data)    
-        try:    
+        try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
-            depth_image = depth_image[175:925, 635:1375]   #[y,x]
+            depth_image = depth_image[263:785, 635:1058]   #[y,x] 263:785, 635:1058
             height = depth_image.shape[0]
             width = depth_image.shape[1]
             print("hheight width", height, width)
-
+            
+            
             # #get distance to a pixel
             # distance_to_parcel = depth_image[300][300] #Calculate distance in [cm] 
             # print("Wall depth: ", distance_to_parcel)
             # #draw circle
             # depth_image = cv2.circle(depth_image, (300,300), radius=3, color=(255, 255, 255), thickness=-1)
 
-            self.calibrate_cam_height(depth_data)
+            #self.calibrate_cam_height(depth_data)
 
             threshold_image = depth_image.copy()
             #loop all x y pixels
@@ -62,16 +74,31 @@ class depth_detect:
             #Convert to from 16-bit to 8-bit (for contours)
             converted_image = threshold_image.copy()
             converted_image = (threshold_image/256).astype('uint8')
-        
+
+            kernel_erosion = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(13,13)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
+            kernel_dilation = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(13,13)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+            img_erosion = cv2.erode(converted_image, kernel_erosion, iterations=4)
+            img_dilation = cv2.dilate(img_erosion, kernel_dilation, iterations=4)
+            
+            #img_opening = cv2.morphologyEx(converted_image, cv2.MORPH_OPEN, kernel)
+
+            
 
 
             #Find contours
-            _, contours, _= cv2.findContours(converted_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            _, contours, _= cv2.findContours(img_dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours = imutils.grab_contours(contours)
+            mask = np.ones(img_dilation.shape[:2], dtype='uint8') *255
+            print("mask: ", mask)
 
+            
 
             i = 0
             for cnt in contours:
+                self.is_contour_bad(cnt)
                 area = cv2.contourArea(contours[i])
+                print("area: ",area)
                 if area > 3000: #and area < 130000:
                     print("------------------")
                     #print("Parcel [",i,"] found")
@@ -108,13 +135,17 @@ class depth_detect:
                         converted_image = cv2.circle(converted_image, centerpoint, radius=3, color=(255, 255, 255), thickness=-1)
                         #converted_image = cv2.circle(converted_image, [300][300], radius=3, color=(255,255,255), thickness=1)
                         cv2.circle(depth_image, (300, 300), 3, (10000, 10000, 10000), -1)
+                        
 
                 i = i + 1
 
             cv2.waitKey(3)
             cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
             cv2.imshow("Depth Image Threshold (*16)", threshold_image * 16)
-            cv2.imshow("8-bit Threshold Image", converted_image * 16)   
+            cv2.imshow("8-bit Threshold Image", converted_image * 16)  
+            cv2.imshow("img_erode: ", img_erosion * 16) 
+            cv2.imshow("img_dilate ", img_dilation * 16)
+            #cv2.imshow("opening", img_opening)
             #cv2.imshow("Depth", depth_image * 16)
 
             #find distance to wall
@@ -163,3 +194,5 @@ def main():
 if __name__ == '__main__':
     rospy.init_node('inbound_parcel_detection', anonymous=True)
     main()
+
+    # Jesper er gay
