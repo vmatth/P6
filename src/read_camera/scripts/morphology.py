@@ -51,11 +51,11 @@ class image_converter:
             #Threshold
             #ret, thresh_image = cv2.threshold(blur_image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
             thresh_image = cv2.adaptiveThreshold(blur_image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
-            #thresh_image2 = cv2.adaptiveThreshold(blur_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+            #thresh_image = cv2.adaptiveThreshold(blur_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
             
             #Morphology
-            kernel_erosion = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
-            kernel_dilation = cv2.getStructuringElement(cv2.MORPH_RECT,(7,7)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
+            kernel_erosion = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
+            kernel_dilation = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
             #opening_image = cv2.morphologyEx(thresh_image, cv2.MORPH_OPEN, kernel)
             #closing_image = cv2.morphologyEx(opening_image, cv2.MORPH_CLOSE, kernel)
             img_erosion = cv2.erode(thresh_image, kernel_erosion, iterations=1)
@@ -78,7 +78,7 @@ class image_converter:
                 print("Parcel [",i,"] found")
 
                 area = cv2.contourArea(contours[i])
-                print("area: ", area)
+                #print("area: ", area)
                 if area > 3000 and area < 130000:
                     #Create a rotated box around the parcel https://theailearner.com/tag/cv2-minarearect/
                     rect = cv2.minAreaRect(cnt)

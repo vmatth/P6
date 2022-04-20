@@ -46,10 +46,10 @@ class image_converter:
             #gray = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
             
             #Blur
-            GaussBlur = cv2.GaussianBlur(depth_data,(5,5), cv2.BORDER_DEFAULT)
+            #GaussBlur = cv2.GaussianBlur(depth_data,(5,5), cv2.BORDER_DEFAULT)
 
             #Threshold
-            Th_val, Th_image = cv2.threshold(GaussBlur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+            Th_val, Th_image = cv2.threshold(depth_image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
             #print("Threshold value", Th_val)
 
             # #Find contour
@@ -59,7 +59,7 @@ class image_converter:
             # depthList = []
             Cont = depth_data.copy()
             #mask = np.zeros_like(rgb_image)
-         
+        
             cv2.drawContours(Cont, contours, 2, (255,0,0), cv2.FILLED) #For testing
 
             # rgb = (255, 0, 0)
