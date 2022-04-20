@@ -163,6 +163,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/read_kinect.py
   scripts/morphology.py
+  scripts/depth_vision.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
