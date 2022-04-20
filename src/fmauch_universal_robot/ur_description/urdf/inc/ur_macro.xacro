@@ -345,13 +345,13 @@
       <visual>
         <geometry>
           <!-- The path to the visual meshes in the package. -->
-          <mesh filename="package://robot_mover/meshes/visual/end_effector.dae"/>
+          <mesh filename="package://robot_mover/meshes/visual/Stor-Sugekop.dae"/>
         </geometry>
       </visual>
       <collision>
         <geometry>
           <!-- The path to the collision meshes in the package. -->
-          <mesh filename="package://robot_mover/meshes/collision/end_effector.dae"/>
+          <mesh filename="package://robot_mover/meshes/collision/Stor-Sugekop.dae"/>
         </geometry>
       </collision>
     </link>
