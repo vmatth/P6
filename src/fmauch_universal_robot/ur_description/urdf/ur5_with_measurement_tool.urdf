@@ -710,7 +710,7 @@
   <link name="tool0"/>
   <joint name="flange-tool0" type="fixed">
     <!-- default toolframe: X+ left, Y+ up, Z+ front -->
-    <origin rpy="1.57079632679 0 1.57079632679" xyz="0 0 0"/>
+    <origin rpy="1.57079632679 0 1.57079632679" xyz="0 0 1"/>
     <parent link="flange"/>
     <child link="tool0"/>
   </joint>
@@ -720,7 +720,7 @@
     <parent link="tool0"/>
     <child link="measurement_tool"/>
     <!-- The tool is directly attached to the flange. -->
-    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <origin rpy="0 0 0" xyz="0 0 -1"/>
   </joint>
   <link name="measurement_tool">
     <visual>
