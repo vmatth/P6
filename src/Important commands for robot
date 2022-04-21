@@ -12,6 +12,7 @@ rosrun robot_mover mover.py
 
 %PUBLISH POSITION ON TOPIC TO BEGIN MOVEMENT(in new tab)
 rostopic pub /robot/pose geometry_msgs/Pose -- '[0.45, 0.1, 0.3]' '[0.0, 0.0, 0.0, 0.2]'
+%rostopic pub /vision/parcel_raw read_camera/Parcel -- '[0.4, 0.2, 0.1]' '20' '[0.4, 0.2, 0.0]'
 
 
 %(optional)
