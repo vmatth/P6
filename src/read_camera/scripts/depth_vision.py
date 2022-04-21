@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from matplotlib.pyplot import contour
 import rospy
 import cv2 
 from sensor_msgs.msg import Image
@@ -16,7 +17,7 @@ class depth_detect:
         self.pub = rospy.Publisher('/vision/parcel_raw', Parcel, queue_size=10)
 
         self.cam_height = 104.1 #cm
-        self.distance_threshold = 99 #distancer higher than this are removed
+        self.distance_threshold = 90 #distancer higher than this are removed
         self.threshold_tolerance = 0 #cm
         self.pix_per_cm = 11.4 #pix / cm
         self.depth_list = []
@@ -38,8 +39,13 @@ class depth_detect:
         print("area: ", area)
         peri = cv2.arcLength(cnt, True)
         print("perimeter: ", peri)
-        circularity = 4 * math.pi * area /(peri)**2
-        print("circularity :", circularity)
+        approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
+        print("approx: ", len(approx))
+        if peri > 0:
+            circularity = 4 * math.pi * area /(peri)**2
+            print("circularity :", circularity)
+
+        #return not len(approx) == 4 and area > 3000
 
 
 
@@ -66,7 +72,7 @@ class depth_detect:
             #loop all x y pixels
             for y in range(0,height):
                 for x in range(0, width):
-                    if depth_image[y, x] >= self.distance_threshold * 10:
+                    if depth_image[y, x] >= self.distance_threshold * 10 or depth_image[y,x] == 0:
                         threshold_image[y, x] = 0
                     else:
                         threshold_image[y, x] = 10000 #10 meters (should be white)
@@ -75,34 +81,44 @@ class depth_detect:
             converted_image = threshold_image.copy()
             converted_image = (threshold_image/256).astype('uint8')
 
-            kernel_erosion = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(13,13)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
-            kernel_dilation = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(13,13)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
-            img_erosion = cv2.erode(converted_image, kernel_erosion, iterations=4)
-            img_dilation = cv2.dilate(img_erosion, kernel_dilation, iterations=4)
-            
-            #img_opening = cv2.morphologyEx(converted_image, cv2.MORPH_OPEN, kernel)
+            # kernel_erosion = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
+            # kernel_dilation = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)) #Can also be MORPH_ELLIPSE or MORPH_CROSS
+            # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+            # img_erosion = cv2.erode(converted_image, kernel_erosion, iterations=1)
+            # img_dilation = cv2.dilate(img_erosion, kernel_dilation, iterations=1)
+            # img_opening = cv2.morphologyEx(converted_image, cv2.MORPH_OPEN, kernel)
 
             
 
 
             #Find contours
-            _, contours, _= cv2.findContours(img_dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            contours = imutils.grab_contours(contours)
-            mask = np.ones(img_dilation.shape[:2], dtype='uint8') *255
-            print("mask: ", mask)
+            _, contours, _ = cv2.findContours(converted_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            print("contours :", len(contours))
 
+            Converted = converted_image.copy()
+
+            cv2.drawContours(Converted,contours,0,(255,255,255), thickness = 2)
+
+            #contours = imutils.grab_contours(contours)
+            #contours = contours[0] if len(contours) == 2 else contours[1]
+
+            #print(converted_image.shape)
+            #mask = np.ones(img_dilation.shape[:2], dtype='uint8') *255
             
 
-            i = 0
+            #i = 0
             for cnt in contours:
-                self.is_contour_bad(cnt)
-                area = cv2.contourArea(contours[i])
-                print("area: ",area)
-                if area > 3000: #and area < 130000:
+
+                if self.is_contour_bad(cnt):
+                    #cv2.drawContours(mask, [cnt], -1, 0, -1)
+                #area = cv2.contourArea(contours)
+                #area = cv2.contourArea(contours[i])
+
+                #print("area: ",area)
+            #if area > 3000: #and area < 130000:
                     print("------------------")
                     #print("Parcel [",i,"] found")
-                    print("area: ", area)
+                    #print("area: ", area)
                     #Create a rotated box around the parcel https://theailearner.com/tag/cv2-minarearect/
                     rect = cv2.minAreaRect(cnt)
                     box = cv2.boxPoints(rect)
@@ -137,15 +153,16 @@ class depth_detect:
                         cv2.circle(depth_image, (300, 300), 3, (10000, 10000, 10000), -1)
                         
 
-                i = i + 1
+                #i = i + 1
 
             cv2.waitKey(3)
             cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
             cv2.imshow("Depth Image Threshold (*16)", threshold_image * 16)
-            cv2.imshow("8-bit Threshold Image", converted_image * 16)  
-            cv2.imshow("img_erode: ", img_erosion * 16) 
-            cv2.imshow("img_dilate ", img_dilation * 16)
-            #cv2.imshow("opening", img_opening)
+            cv2.imshow("8-bit Threshold Image", converted_image * 16)
+            cv2.imshow("Converted",Converted)
+            # cv2.imshow("img_erode: ", img_erosion * 16) 
+            # cv2.imshow("img_dilate ", img_dilation * 16)
+            # cv2.imshow("mask", mask * 16)
             #cv2.imshow("Depth", depth_image * 16)
 
             #find distance to wall
@@ -194,5 +211,3 @@ def main():
 if __name__ == '__main__':
     rospy.init_node('inbound_parcel_detection', anonymous=True)
     main()
-
-    # Jesper er gay
