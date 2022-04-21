@@ -8,8 +8,10 @@ import geometry_msgs.msg
 from math import pi
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose  
 from read_camera.msg import Parcel #Parcel msg
+from scipy.spatial.transform import Rotation
+
 
 #class here
 class mover:
@@ -19,7 +21,7 @@ class mover:
         rospy.init_node('robot_mover', anonymous=True)
 
         self.robot = moveit_commander.RobotCommander()
-        scene = moveit_commander.PlanningSceneInterface()
+        self.scene = moveit_commander.PlanningSceneInterface()
 
         group_name = "manipulator"
         self.group = moveit_commander.MoveGroupCommander(group_name)
@@ -41,20 +43,53 @@ class mover:
     
         #rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
         rospy.Subscriber("/robot/pose", Pose, self.movement_callback)
+        #subscribe to parcel here
+        rospy.Subscriber("/vision/parcel_raw", Parcel, self.add_parcel)
 
-        box_pose = geometry_msgs.msg.PoseStamped()
-        box_pose.header.frame_id = "base"
-        box_pose.pose.orientation.w = 1.0
-        box_pose.pose.position.x = 0
-        box_pose.pose.position.y = 0.155
-        box_pose.pose.position.z = -0.05
-        box_name = "table"
-        scene.add_box(box_name, box_pose, size=(0.42, 0.93, 0.05))
-
-
+        self.add_environment()
         #transform_camera = [1, 0, 0, -0.1
         #                     0, -1, 0, 0.54
         #                     0, 0,-1, 1.02]
+
+    def add_parcel(self, parcel):
+        rospy.loginfo(rospy.get_caller_id() + "New parcel %s", parcel)
+
+        #rad to quaternion
+        rot = Rotation.from_euler('xyz', [0, 0, parcel.angle], degrees=True)
+        rot_quat = rot.as_quat()
+        print(rot_quat)
+
+         #add to environment !
+        parcel_pose = geometry_msgs.msg.PoseStamped()
+        parcel_pose.header.frame_id = "base"
+        parcel_pose.pose.orientation.w = 1 #quaternion
+        parcel_pose.pose.orientation.z = rot_quat #parcel.angle
+        parcel_pose.pose.position.x = parcel.centerpoint.x
+        parcel_pose.pose.position.y = parcel.centerpoint.y
+        parcel_pose.pose.position.z = parcel.size.z/2 -0.03
+        parcel_name = "parcel"
+        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
+
+
+    def add_environment(self):
+        table_pose = geometry_msgs.msg.PoseStamped()
+        table_pose.header.frame_id = "base"
+        table_pose.pose.orientation.w = 1.0
+        table_pose.pose.position.x = 0
+        table_pose.pose.position.y = 0.3
+        table_pose.pose.position.z = -0.03
+        table_name = "table"
+        self.scene.add_box(table_name, table_pose, size=(0.42, 0.93, 0.05))
+
+        
+        backboard_pose = geometry_msgs.msg.PoseStamped()
+        backboard_pose.header.frame_id = "base"
+        backboard_pose.pose.orientation.w = 1.0
+        backboard_pose.pose.position.x = 0.0
+        backboard_pose.pose.position.y = 0.74   
+        backboard_pose.pose.position.z = 0.47
+        backboard_name = "backboard"
+        self.scene.add_box(backboard_name, backboard_pose, size=(0.42, 0.05, 1.0))
 
     def movement_callback(self, pose):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", pose)

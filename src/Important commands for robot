@@ -16,7 +16,7 @@ rostopic pub /robot/pose geometry_msgs/Pose -- '[0.45, 0.1, 0.3]' '[0.0, 0.0, 0.
 
 %(optional)
 %VISUALIZE and plan trajectory in RVIZ
-roslaunch ur5_config moveit_rviz.launch rviz_config:=$(rospack find ur5_config)/launch/moveit.rviz
+roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_moveit_config)/launch/moveit.rviz
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
