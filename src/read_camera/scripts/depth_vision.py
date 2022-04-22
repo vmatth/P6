@@ -17,7 +17,7 @@ class depth_detect:
         self.pub = rospy.Publisher('/vision/parcel_raw', Parcel, queue_size=10)
 
         self.cam_height = 104.1 #cm
-        self.distance_threshold = 90 #distancer higher than this are removed
+        self.distance_threshold = 88 #distancer higher than this are removed
         self.threshold_tolerance = 0 #cm
         self.pix_per_cm = 11.4 #pix / cm
         self.depth_list = []
@@ -54,7 +54,7 @@ class depth_detect:
         #rospy.loginfo(rospy.get_caller_id() + "I heard %s", depth_data.data)    
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
-            depth_image = depth_image[263:785, 635:1058]   #[y,x] 263:785, 635:1058
+            depth_image = depth_image[263:785, 645:1058]   #[y,x] 263:785, 635:1058
             height = depth_image.shape[0]
             width = depth_image.shape[1]
             print("hheight width", height, width)
