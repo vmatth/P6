@@ -10,16 +10,9 @@ roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch
 %RUN MOVER.PY SCRIPT (in new tab)
 rosrun robot_mover mover.py
 
-%PUBLISH POSITION ON TOPIC TO BEGIN MOVEMENT(in new tab)
-rostopic pub /vision/parcel_raw read_camera/Parcel -- '[0.4, 0.2, 0.1]' '20' '[0.4, 0.2, 0.0]'
-
 %(optional)
 %VISUALIZE and plan trajectory in RVIZ
 roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_moveit_config)/launch/moveit.rviz
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,6 +29,15 @@ rosrun robot_mover mover.py
 %(optional)
 %VISUALIZE and plan trajectory in RVIZ
 roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_moveit_config)/launch/moveit.rviz
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			%ROSTOPIC PUB COMMANDS
+rostopic pub /vision/parcel_raw read_camera/Parcel -- '[0.4, 0.2, 0.1]' '45' '[0, 0.5, 0.0]'
+
+
+rostopic pub /workspace/add_parcel bin_packing/Packing_info -- '[0.4, 0.2, 0.1]' '[0, -0.5, 0.0]'
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

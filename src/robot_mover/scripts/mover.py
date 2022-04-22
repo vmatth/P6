@@ -44,12 +44,18 @@ class mover:
 
         print("Robot Pose: ", self.group.get_current_pose())
     
+
+        self.go_to_pick_ready()
+        
         #rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
         #rospy.Subscriber("/robot/pose", Pose, self.movement_callback)
         #subscribe to parcel here
         rospy.Subscriber("/vision/parcel_raw", Parcel, self.add_parcel)
         rospy.Subscriber("/workspace/add_parcel", Packing_info, self.parcel_goal_callback)
 
+        print("Named Targets: , ", self.group.get_named_targets())
+
+        
 
         self.add_environment()
         #transform_camera = [1, 0, 0, -0.1
@@ -100,9 +106,22 @@ class mover:
         backboard_pose.pose.orientation.w = 1.0
         backboard_pose.pose.position.x = 0.0
         backboard_pose.pose.position.y = 0.80   
-        backboard_pose.pose.position.z = 0.46
+        backboard_pose.pose.position.z = 0.445
         backboard_name = "backboard"
         self.scene.add_box(backboard_name, backboard_pose, size=(0.41, 0.05, 1.06))
+
+        #super unnecessary but maybe kinda work idk
+        # ceiling_pose = geometry_msgs.msg.PoseStamped()
+        # ceiling_pose.header.frame_id = "base"
+        # ceiling_pose.pose.orientation.w = 1.0
+        # ceiling_pose.pose.position.x = 0.0
+        # ceiling_pose.pose.position.y = 0.31
+        # ceiling_pose.pose.position.z = 1.0
+        # ceiling_name = "ceiling"
+        # self.scene.add_box(ceiling_name, ceiling_pose, size=(3.41, 3.0, 0.08))
+
+        self.scene.remove_attached_object(self.eef_link, name="parcel")
+        self.scene.remove_world_object("parcel")
 
 
     def connect_parcel(self):
@@ -113,62 +132,99 @@ class mover:
         print("Parcel Connected?")
 
 
-    def pick_parcel(self, pose, size):
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH MOVEMENT")
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", pose)
-        pose_goal = geometry_msgs.msg.Pose()
-        pose_goal = pose #D:
-        pose_goal.position.z =+ size.z #maaske / 2
-        print("pls go to: ", pose_goal)    
-        self.group.set_pose_target(pose_goal)
+    def go_to_pick_ready(self):
+        print("Going to pick_ready")
+        self.group.set_named_target("pick_ready")
     
         plan = self.group.go(wait=True)
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
 
+        self.group.clear_pose_targets()
 
-        print("PLAN!!", plan)
+        print("Did plan succeed: ", plan)
 
-        if plan == 1 :
+        return plan
+
+    def go_to_pack_ready(self):
+        print("Going to pack_ready")
+        self.group.set_named_target("pack_ready")
+    
+        plan = self.group.go(wait=True)
+        # Calling ``stop()`` ensures that there is no residual movement
+        self.group.stop()
+
+        self.group.clear_pose_targets()
+
+        print("Did plan succeed: ", plan)
+
+        return plan
+
+    def pick_parcel(self, pose, size):
+        pose_goal = geometry_msgs.msg.Pose()
+        pose_goal = pose
+        pose_goal.position.z =+ size.z + 0.01
+        print("Pick Parcel Pose Goal: ", pose_goal)    
+        self.group.set_pose_target(pose_goal)
+
+        plan = self.group.go(wait=True)
+        # Calling ``stop()`` ensures that there is no residual movement
+        self.group.stop()
+
+        self.group.clear_pose_targets()
+
+        if plan==1:
             self.connect_parcel()
-            rospy.sleep(2)
-            self.place_parcel(self.parcel_goal)
-            
-        # It is always good to clear your targets after planning with poses.
-        # Note: there is no equivalent function for clear_joint_value_targets()
-        #self.group.clear_pose_targets()
-        print("arrived!")
-
-
-
-        # plan, frac = self.damn()
-        # self.group.execute(plan, wait=True)
-        #self.scene.remove_world_object("parcel")
-
+            self.go_to_pick_ready()
+            self.go_to_pack_ready()
+            self.place_parcel()
+        # if plan == 1:
+        #     self.pick_parcel(self.parcel_goal)
+        #     rospy.sleep(2)
 
     def parcel_goal_callback(self, packing_info):
-        print("Parcel goal callback!")
+        # print("Parcel goal callback!")
         
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", packing_info)
+            
+
+        #rad to quaternion
+        rot = Rotation.from_euler('xyz', [180, 0, 45], degrees=True)
+        rot_quat = rot.as_quat()
+        print(rot_quat)
+
+        #rospy.loginfo(rospy.get_caller_id() + "I heard %s", packing_info)
         pose_goal = geometry_msgs.msg.Pose()
-        pose_goal = self.group.get_current_pose()
-        pose_goal.position.x = packing_info.position.x + packing_info.size.x /2 #D:
-        pose_goal.position.y = packing_info.position.y + packing_info.size.y /2 #D:
-        pose_goal.position.z = packing_info.position.z + packing_info.size.z #maaske / 2
+
+        pose_goal.orientation.x = rot_quat[0]
+        pose_goal.orientation.y = rot_quat[1]
+        pose_goal.orientation.z = rot_quat[2] #parcel.angle
+        pose_goal.orientation.w = rot_quat[3] #quaternion
+
+        pose_goal.position.x = packing_info.pos.x * -1#+ packing_info.size.x /2  * -1 #D:
+        pose_goal.position.y = packing_info.pos.y * -1#+ packing_info.size.y /2  * -1 #D:
+        pose_goal.position.z = packing_info.pos.z + packing_info.size.z + 0.01#+ packing_info.size.z #maaske / 2
 
         self.parcel_goal = pose_goal
+        print("Saving parcel place goal: ", self.parcel_goal)
 
-    def place_parcel(self, pose_goal):
+    def place_parcel(self):
+        print("Place parcel")
 
-        print("pls go to: ", pose_goal)    
-        self.group.set_pose_target(pose_goal)
+        print("Place parcel goal ", self.parcel_goal)    
+        self.group.set_pose_target(self.parcel_goal)
     
         plan = self.group.go(wait=True)
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
 
-        print("PLAN!!", plan)
+        print("Did plan succeed: ", plan)
+        if plan == 1:
+            self.scene.remove_attached_object(self.eef_link, name="parcel")
+            self.scene.remove_world_object("parcel")            
+            self.go_to_pack_ready()
+            self.go_to_pick_ready()
 
+        self.group.clear_pose_targets()
 
 
 def main():
