@@ -11,6 +11,7 @@ from moveit_commander.conversions import pose_to_list
 from geometry_msgs.msg import Pose  
 from read_camera.msg import Parcel #Parcel msg
 from scipy.spatial.transform import Rotation
+from bin_packing.msg import Packing_info
 
 
 #class here
@@ -25,6 +26,8 @@ class mover:
 
         group_name = "manipulator"
         self.group = moveit_commander.MoveGroupCommander(group_name)
+
+        self.parcel_goal = geometry_msgs.msg.Pose()
 
         self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=20)
 
@@ -45,6 +48,7 @@ class mover:
         #rospy.Subscriber("/robot/pose", Pose, self.movement_callback)
         #subscribe to parcel here
         rospy.Subscriber("/vision/parcel_raw", Parcel, self.add_parcel)
+        rospy.Subscriber("/workspace/add_parcel", Packing_info, self.parcel_goal_callback)
 
 
         self.add_environment()
@@ -70,7 +74,7 @@ class mover:
         parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
         parcel_pose.pose.position.x = parcel.centerpoint.x
         parcel_pose.pose.position.y = parcel.centerpoint.y 
-        parcel_pose.pose.position.z = parcel.size.z/2 -0.03
+        parcel_pose.pose.position.z = parcel.size.z/2 #-0.03
         parcel_name = "parcel"
         self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
 
@@ -86,19 +90,19 @@ class mover:
         table_pose.header.frame_id = "base"
         table_pose.pose.orientation.w = 1.0
         table_pose.pose.position.x = 0
-        table_pose.pose.position.y = 0.3
-        table_pose.pose.position.z = -0.03
+        table_pose.pose.position.y = 0.31
+        table_pose.pose.position.z = -0.045
         table_name = "table"
-        self.scene.add_box(table_name, table_pose, size=(0.42, 0.93, 0.05))
+        self.scene.add_box(table_name, table_pose, size=(0.41, 0.93, 0.08))
         
         backboard_pose = geometry_msgs.msg.PoseStamped()
         backboard_pose.header.frame_id = "base"
         backboard_pose.pose.orientation.w = 1.0
         backboard_pose.pose.position.x = 0.0
-        backboard_pose.pose.position.y = 0.74   
-        backboard_pose.pose.position.z = 0.47
+        backboard_pose.pose.position.y = 0.80   
+        backboard_pose.pose.position.z = 0.46
         backboard_name = "backboard"
-        self.scene.add_box(backboard_name, backboard_pose, size=(0.42, 0.05, 1.0))
+        self.scene.add_box(backboard_name, backboard_pose, size=(0.41, 0.05, 1.06))
 
 
     def connect_parcel(self):
@@ -127,6 +131,9 @@ class mover:
 
         if plan == 1 :
             self.connect_parcel()
+            rospy.sleep(2)
+            self.place_parcel(self.parcel_goal)
+            
         # It is always good to clear your targets after planning with poses.
         # Note: there is no equivalent function for clear_joint_value_targets()
         #self.group.clear_pose_targets()
@@ -136,8 +143,32 @@ class mover:
 
         # plan, frac = self.damn()
         # self.group.execute(plan, wait=True)
-        print("arrived")
         #self.scene.remove_world_object("parcel")
+
+
+    def parcel_goal_callback(self, packing_info):
+        print("Parcel goal callback!")
+        
+        rospy.loginfo(rospy.get_caller_id() + "I heard %s", packing_info)
+        pose_goal = geometry_msgs.msg.Pose()
+        pose_goal = self.group.get_current_pose()
+        pose_goal.position.x = packing_info.position.x + packing_info.size.x /2 #D:
+        pose_goal.position.y = packing_info.position.y + packing_info.size.y /2 #D:
+        pose_goal.position.z = packing_info.position.z + packing_info.size.z #maaske / 2
+
+        self.parcel_goal = pose_goal
+
+    def place_parcel(self, pose_goal):
+
+        print("pls go to: ", pose_goal)    
+        self.group.set_pose_target(pose_goal)
+    
+        plan = self.group.go(wait=True)
+        # Calling ``stop()`` ensures that there is no residual movement
+        self.group.stop()
+
+        print("PLAN!!", plan)
+
 
 
 def main():

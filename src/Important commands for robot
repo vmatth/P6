@@ -11,9 +11,7 @@ roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch
 rosrun robot_mover mover.py
 
 %PUBLISH POSITION ON TOPIC TO BEGIN MOVEMENT(in new tab)
-rostopic pub /robot/pose geometry_msgs/Pose -- '[0.45, 0.1, 0.3]' '[0.0, 0.0, 0.0, 0.2]'
-%rostopic pub /vision/parcel_raw read_camera/Parcel -- '[0.4, 0.2, 0.1]' '20' '[0.4, 0.2, 0.0]'
-
+rostopic pub /vision/parcel_raw read_camera/Parcel -- '[0.4, 0.2, 0.1]' '20' '[0.4, 0.2, 0.0]'
 
 %(optional)
 %VISUALIZE and plan trajectory in RVIZ
@@ -32,6 +30,13 @@ roslaunch ur_gazebo ur5_bringup.launch limited:=true
 %PREPARE MOVEMENT (in new tab)
 roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch sim:=true limited:=true
 
+%RUN MOVER.PY SCRIPT (in new tab)
+rosrun robot_mover mover.py
+
+%(optional)
+%VISUALIZE and plan trajectory in RVIZ
+roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_moveit_config)/launch/moveit.rviz
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			%Move It Config
@@ -41,6 +46,8 @@ roslaunch ur5_moveit_config setup_assistant.launch
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			%Trajectory via GUI
 
 %(optional)
 %You can also move using a GUI:
