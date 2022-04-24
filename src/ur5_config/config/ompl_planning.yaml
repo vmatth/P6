@@ -145,7 +145,7 @@ manipulator:
     - LazyPRMstar
     - SPARS
     - SPARStwo
-measurement_tool:
+endeffector:
   planner_configs:
     - SBL
     - EST

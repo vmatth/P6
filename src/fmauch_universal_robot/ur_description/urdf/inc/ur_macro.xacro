@@ -328,9 +328,39 @@
     <link name="${prefix}tool0"/>
     <joint name="${prefix}flange-tool0" type="fixed">
       <!-- default toolframe: X+ left, Y+ up, Z+ front -->
-      <origin xyz="0 0 0" rpy="${pi/2.0} 0 ${pi/2.0}"/>
+      <origin xyz="0.16 0 0" rpy="${pi/2.0} 0 ${pi/2.0}"/>
       <parent link="${prefix}flange"/>
       <child link="${prefix}tool0"/>
     </joint>
+
+    <!-- Create a fixed joint with a parameterized name. -->
+    <joint name="measurement_tool_joint" type="fixed">
+      <!-- The parent link must be read from the robot model it is attached to. -->
+      <parent link="${prefix}tool0"/>
+      <child link="measurement_tool"/>
+      <!-- The tool is directly attached to the flange. -->
+      <origin rpy="1.57 0 0" xyz="-0.0315 0.0425 -0.159"/>
+    </joint>
+    <link name="measurement_tool">
+      <visual>
+        <geometry>
+          <!-- The path to the visual meshes in the package. -->
+          <mesh filename="package://robot_mover/meshes/visual/end_effector.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <!-- The path to the collision meshes in the package. -->
+          <mesh filename="package://robot_mover/meshes/collision/end_effector.dae"/>
+        </geometry>
+      </collision>
+    </link>
+    <!-- TCP frame -->
+    <joint name="tcp_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0.116"/>
+      <parent link="measurement_tool"/>
+      <child link="tcp"/>
+    </joint>
+    <link name="tcp"/>
   </xacro:macro>
 </robot>
