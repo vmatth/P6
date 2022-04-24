@@ -147,10 +147,10 @@ class depth_detect:
             cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
             cv2.imshow("Depth Image Threshold (*16)", threshold_image * 16)
             cv2.imshow("Cropped Image", cropped_image * 16)   
-            cv2.imshow("Depth", depth_image * 16)
+            #cv2.imshow("Depth", depth_image * 16)
             cv2.imshow("Resized image", resized_image * 16)
-            cv2.imshow("asdasdasd", cropped_depth_image * 16)
-            cv2.imshow("lol", resized_depth_image * 16)
+            #cv2.imshow("asdasdasd", cropped_depth_image * 16)
+            #cv2.imshow("lol", resized_depth_image * 16)
         except CvBridgeError as e:
             print(e)
 
