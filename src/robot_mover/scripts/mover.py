@@ -5,13 +5,15 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
-from math import pi
+import math
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from geometry_msgs.msg import Pose  
 from read_camera.msg import Parcel #Parcel msg
 from scipy.spatial.transform import Rotation
 from bin_packing.msg import Packing_info
+from bin_packing.msg import Workspace #workspace msg
+from ur_msgs.srv import SetIO
 
 
 #class here
@@ -43,54 +45,20 @@ class mover:
         print("Robot State: ", self.robot.get_current_state())
 
         print("Robot Pose: ", self.group.get_current_pose())
-    
 
-        self.go_to_pick_ready()
+        self.add_environment()
         
         #rospy.Subscriber("/vision/parcel_raw", Parcel, self.movement_callback)
         #rospy.Subscriber("/robot/pose", Pose, self.movement_callback)
         #subscribe to parcel here
-        rospy.Subscriber("/vision/parcel_raw", Parcel, self.add_parcel)
-        rospy.Subscriber("/workspace/add_parcel", Packing_info, self.parcel_goal_callback)
+        #rospy.Subscriber("/vision/parcel_raw", Parcel, self.add_parcel)
+        rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
+        rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
 
-        print("Named Targets: , ", self.group.get_named_targets())
+        #print("Named Targets: , ", self.group.get_named_targets())
 
+        self.go_to_pick_ready()
         
-
-        self.add_environment()
-        #transform_camera = [1, 0, 0, -0.1
-        #                     0, -1, 0, 0.54
-        #                     0, 0,-1, 1.02]
-        
-
-    def add_parcel(self, parcel):
-        rospy.loginfo(rospy.get_caller_id() + "New parcel %s", parcel)
-
-        #rad to quaternion
-        rot = Rotation.from_euler('xyz', [180, 0, parcel.angle], degrees=True)
-        rot_quat = rot.as_quat()
-        print(rot_quat)
-
-         #add to environment !
-        parcel_pose = geometry_msgs.msg.PoseStamped()
-        parcel_pose.header.frame_id = "base"
-        parcel_pose.pose.orientation.x = rot_quat[0]
-        parcel_pose.pose.orientation.y = rot_quat[1]
-        parcel_pose.pose.orientation.z = rot_quat[2] #parcel.angle
-        parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
-        parcel_pose.pose.position.x = parcel.centerpoint.x
-        parcel_pose.pose.position.y = parcel.centerpoint.y 
-        parcel_pose.pose.position.z = parcel.size.z/2 #-0.03
-        parcel_name = "parcel"
-        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
-
-        #*1 here and stuf
-        parcel_pose.pose.position.x = parcel.centerpoint.x * -1
-        parcel_pose.pose.position.y = parcel.centerpoint.y * -1
-
-        self.pick_parcel(parcel_pose.pose, parcel.size)
-
-
     def add_environment(self):
         table_pose = geometry_msgs.msg.PoseStamped()
         table_pose.header.frame_id = "base"
@@ -120,15 +88,93 @@ class mover:
         # ceiling_name = "ceiling"
         # self.scene.add_box(ceiling_name, ceiling_pose, size=(3.41, 3.0, 0.08))
 
+        #workspace size = 60x80
+        #workspace center x from robot frame: 60
+        #workspace z from robot frame: -20
+
         self.scene.remove_attached_object(self.eef_link, name="parcel")
         self.scene.remove_world_object("parcel")
 
+    def add_workspace(self, data):
+        workspace_pose = geometry_msgs.msg.PoseStamped()
+        workspace_pose.header.frame_id = "base"
+        workspace_pose.pose.orientation.w = 1.0
+        workspace_pose.pose.position.x = 0
+        workspace_pose.pose.position.y = 0.31
+        workspace_pose.pose.position.z = -0.045
+        table_name = "table"
+        self.scene.add_box(table_name, table_pose, size=(0.41, 0.93, 0.08))        
+
+
+
+    def add_parcel(self, parcel):
+        #rad to quaternion
+        rot = Rotation.from_euler('xyz', [180, 0, parcel.angle], degrees=True)
+        rot_quat = rot.as_quat()
+        #print(rot_quat)
+
+        #add parcel to environment !
+        parcel_pose = geometry_msgs.msg.PoseStamped()
+        parcel_pose.header.frame_id = "base"
+
+        parcel_pose.pose.position.x = parcel.start_pos.x
+        parcel_pose.pose.position.y = parcel.start_pos.y 
+        parcel_pose.pose.position.z = parcel.start_pos.z - parcel.size.z
+        parcel_pose.pose.orientation.x = rot_quat[0]
+        parcel_pose.pose.orientation.y = rot_quat[1]
+        parcel_pose.pose.orientation.z = rot_quat[2] #parcel.angle
+        parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
+        parcel_name = "parcel"
+        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
+
+        #pick pose here kan du se at jeg skriver her viniboi no
+        picking_pose = geometry_msgs.msg.PoseStamped()
+
+        # if parcel.picking_side == 1:
+        #     print("Picking side ", 1)
+        #     #rotate the gripper based on which rotation the packing algorithm gives
+        #     #rot = Rotation.from_euler('xyz', [180, 0, parcel.angle + parcel.parcel_rotation], degrees=True)
+        #     rot = Rotation.from_euler('xyz', [parcel.angle + parcel.parcel_rotation, 90, 0], degrees=True)
+        #     rot_quat = rot.as_quat()
+        #     picking_pose.pose.position.x = parcel.start_pos.x *-1
+        #     picking_pose.pose.position.y = parcel.start_pos.y *-1
+        #     picking_pose.pose.position.z = parcel.size.z/2 #-0.03
+        #     picking_pose.pose.orientation.x = rot_quat[0]
+        #     picking_pose.pose.orientation.y = rot_quat[1]
+        #     picking_pose.pose.orientation.z = rot_quat[2] #parcel.angle
+        #     picking_pose.pose.orientation.w = rot_quat[3] #quaternion
+        # #find ud af om det er picking side 2
+        # if parcel.picking_side == 2:
+        #     print("Picking side ", 2)
+        #     rot = Rotation.from_euler('xyz', [90, 90, 0], degrees=True)
+        #     rot_quat = rot.as_quat()
+
+        #     print("start pos x y: ", parcel.start_pos.x *-1, parcel.start_pos.y *-1)
+
+        #     print("cos stuff", (math.cos(math.radians(parcel.parcel_rotation))))
+        #     print("size", parcel.size.x)
+
+        #     picking_pose.pose.position.x = parcel.start_pos.x*-1 - (math.cos(math.radians(parcel.parcel_rotation))* parcel.size.x/2)
+        #     picking_pose.pose.position.y = parcel.start_pos.y*-1 - (math.sin(math.radians(parcel.parcel_rotation))* parcel.size.y/2)
+
+        #     print("new pos with cos sin x y ", picking_pose.pose.position.x, picking_pose.pose.position.y)
+
+        #     picking_pose.pose.position.z = parcel.size.z/2 #-0.03 todoo fix /2
+        #     picking_pose.pose.orientation.x = rot_quat[0]
+        #     picking_pose.pose.orientation.y = rot_quat[1]
+        #     picking_pose.pose.orientation.z = rot_quat[2] #parcel.angle
+        #     picking_pose.pose.orientation.w = rot_quat[3] #quaternion
+
+        self.update_end_goal(parcel.end_pos)
+        self.pick_parcel(picking_pose.pose, parcel.size)
 
     def connect_parcel(self):
         print("connect to parcel!")
         grasping_group = 'endeffector'
         touch_links = self.robot.get_link_names(group=grasping_group)
         self.scene.attach_box(self.eef_link, "parcel", touch_links=touch_links)
+        set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
+        set_io(fun = 1, pin = 0 ,state = 1)
         print("Parcel Connected?")
 
 
@@ -163,7 +209,7 @@ class mover:
     def pick_parcel(self, pose, size):
         pose_goal = geometry_msgs.msg.Pose()
         pose_goal = pose
-        pose_goal.position.z =+ size.z + 0.01
+        pose_goal.position.z =+ size.z + 0.001
         print("Pick Parcel Pose Goal: ", pose_goal)    
         self.group.set_pose_target(pose_goal)
 
@@ -174,35 +220,32 @@ class mover:
         self.group.clear_pose_targets()
 
         if plan==1:
+
+            rospy.sleep(0.5)
             self.connect_parcel()
-            self.go_to_pick_ready()
+            self.go_to_pick_ready()          
             self.go_to_pack_ready()
             self.place_parcel()
         # if plan == 1:
         #     self.pick_parcel(self.parcel_goal)
         #     rospy.sleep(2)
 
-    def parcel_goal_callback(self, packing_info):
-        # print("Parcel goal callback!")
-        
-            
-
+    def update_end_goal(self, goal):
         #rad to quaternion
-        rot = Rotation.from_euler('xyz', [180, 0, 45], degrees=True)
+        rot = Rotation.from_euler('xyz', [0, 90, 0], degrees=True)
         rot_quat = rot.as_quat()
-        print(rot_quat)
 
-        #rospy.loginfo(rospy.get_caller_id() + "I heard %s", packing_info)
         pose_goal = geometry_msgs.msg.Pose()
+        pose_goal.orientation = self.group.get_current_pose().pose.orientation
 
-        pose_goal.orientation.x = rot_quat[0]
-        pose_goal.orientation.y = rot_quat[1]
-        pose_goal.orientation.z = rot_quat[2] #parcel.angle
-        pose_goal.orientation.w = rot_quat[3] #quaternion
+        # pose_goal.orientation.x = rot_quat[0]
+        # pose_goal.orientation.y = rot_quat[1]
+        # pose_goal.orientation.z = rot_quat[2] #parcel.angle
+        # pose_goal.orientation.w = rot_quat[3] #quaternion
 
-        pose_goal.position.x = packing_info.pos.x * -1#+ packing_info.size.x /2  * -1 #D:
-        pose_goal.position.y = packing_info.pos.y * -1#+ packing_info.size.y /2  * -1 #D:
-        pose_goal.position.z = packing_info.pos.z + packing_info.size.z + 0.01#+ packing_info.size.z #maaske / 2
+        pose_goal.position.x = goal.x
+        pose_goal.position.y = goal.y
+        pose_goal.position.z = goal.z
 
         self.parcel_goal = pose_goal
         print("Saving parcel place goal: ", self.parcel_goal)
@@ -220,7 +263,9 @@ class mover:
         print("Did plan succeed: ", plan)
         if plan == 1:
             self.scene.remove_attached_object(self.eef_link, name="parcel")
-            self.scene.remove_world_object("parcel")            
+            self.scene.remove_world_object("parcel")
+            set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
+            set_io(fun = 1, pin = 0 ,state = 0)          
             self.go_to_pack_ready()
             self.go_to_pick_ready()
 

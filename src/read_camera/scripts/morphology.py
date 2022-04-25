@@ -17,7 +17,7 @@ class image_converter:
         self.ts = message_filters.TimeSynchronizer([self.rgb_sub, self.depth_sub], 10)
         self.ts.registerCallback(self.camera_callback)
 
-        self.pub = rospy.Publisher('/vision/parcel_raw', Parcel, queue_size=10)
+        self.pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
 
         ###########################################################################
         ################################ SETUP ##################################

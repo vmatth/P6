@@ -171,6 +171,7 @@ include_directories(
    scripts/floor_building_algorithm.py
    scripts/workspace.py
    scripts/send_parcels.py
+   scripts/workspace_to_robot.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 

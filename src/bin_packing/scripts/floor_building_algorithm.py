@@ -24,10 +24,9 @@ class floor_building:
         self.list = []
         
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
-        
         #self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
         
-        rospy.Subscriber("/vision/frame_acq/parcel_info", Parcel, self.parcel_callback)
+        rospy.Subscriber("/vision/parcel", Parcel, self.parcel_callback)
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
     
     
@@ -41,7 +40,7 @@ class floor_building:
     
     def parcel_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
-        p = parcel(Point(0,0,0), data.size)
+        p = parcel(Point(0,0,0), data.size, data.centerpoint)
         self.start_floor_building(p)
 
     def parcel_in_range(self, position, parcel):
@@ -114,7 +113,7 @@ class floor_building:
         print("floor building algorithm")
 
         r = 0 #Times rotated
-        original_parcel = parcel(Point(0,0,0), _parcel.size)
+        original_parcel = parcel(Point(0,0,0), _parcel.size, _parcel.start_position) #Copy the original parcel as _parcel will have performed many rotations by the end of this function
         h = _parcel.size.z
 
         for y in range(ws_y):
@@ -218,7 +217,7 @@ class floor_building:
 
         #print("xyzlist: ", xyzlist)
 
-
+        #If any available packing positions were found
         if len(xyzlist) > 0:
             temp = xyzlist[0]
             for i in range(len(xyzlist)):
@@ -234,27 +233,41 @@ class floor_building:
             #print("parcel: ", _parcel.size.x, _parcel.size.y, _parcel.size.z)            
             #print("temp: ", temp)
             #publish x,y,z coordinates
+
+            picking_side = None
+            parcel_rotation = 0
+
             #Fundet den laveste z-coordinate
             if temp[3] == 0:
                 print("No rotation")
+                picking_side = 1
+                parcel_rotation = 0
             elif temp[3] == 1:
                 print("Rotated parcel 1 time")
                 original_parcel.rotate_parcel('z')
+                picking_side = 1
+                parcel_rotation = 90
             elif temp[3] == 2:
                 print("Rotated parcel 2 times")
                 original_parcel.rotate_parcel('z')   
                 original_parcel.rotate_parcel('y')    
+                picking_side = 2
+                parcel_rotation = 0
             elif temp[3] == 3:
                 print("Rotated parcel 3 times")
                 original_parcel.rotate_parcel('z')   
                 original_parcel.rotate_parcel('y')  
                 original_parcel.rotate_parcel('z') 
+                picking_side = 2
+                parcel_Rotation = 90
             elif temp[3] == 4:
                 print("Rotated parcel 4 times")
                 original_parcel.rotate_parcel('z')   
                 original_parcel.rotate_parcel('y')  
                 original_parcel.rotate_parcel('z')
                 original_parcel.rotate_parcel('y')
+                picking_side == 3
+                parcel_rotation = 0
             elif temp[3] == 5:
                 print("Rotated parcel 5 times")
                 original_parcel.rotate_parcel('z')   
@@ -262,9 +275,11 @@ class floor_building:
                 original_parcel.rotate_parcel('z')
                 original_parcel.rotate_parcel('y')
                 original_parcel.rotate_parcel('z')
+                picking_side == 3
+                parcel_rotation = 90
 
                 
-            self.packing_pub(temp[0], temp[1], temp[2], original_parcel.size.x, original_parcel.size.y, original_parcel.size.z)
+            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, Point(original_parcel.size.x, original_parcel.size.y, original_parcel.size.z), picking_side, parcel_rotation)
 
         elif len(xyzlist) <= 0:
             return False
@@ -272,30 +287,23 @@ class floor_building:
 
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
-            # parcel.rotate_parcel('z')
-            # if self.floor_building_algorithm(parcel) == False:
-            #     parcel.rotate_parcel('y')
-            #     if self.floor_building_algorithm(parcel) == False:
-            #         parcel.rotate_parcel('z')
-            #         if self.floor_building_algorithm(parcel) == False:
-            #             parcel.rotate_parcel('y')
-            #             if self.floor_building_algorithm(parcel) == False:
-            #                 parcel.rotate_parcel('z')
-            #                 if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
             rospy.sleep(999)
         
-    def packing_pub(self, pos_x, pos_y, pos_z, size_x, size_y, size_z):
+    def packing_pub(self, end_pos, start_pos, size, picking_side, parcel_rotation):
         msg = Packing_info()
 
-        msg.size = Point(size_x, size_y, size_z)
-        msg.pos = Point(pos_x, pos_y, pos_z)
+        msg.size = size
+        msg.end_pos = end_pos
+        msg.start_pos = start_pos 
+        msg.picking_side = picking_side
+        msg.parcel_rotation = parcel_rotation
 
 
         print(msg)
 
         self.pub.publish(msg)
-        print("Publishing to /packing_info")
+        print("Publishing to /workspace/add_parcel")
 
 
 

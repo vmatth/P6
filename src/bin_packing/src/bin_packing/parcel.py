@@ -4,9 +4,10 @@ from geometry_msgs.msg import Point #point type
 
 #Class for a new individual parcel. Contains information about the parcel's position and parcel's size.
 class parcel:
-    def __init__(self, _position, _size):
+    def __init__(self, _position, _size, _start_position):
         self.size = _size
-        self.position = _position
+        self.position = _position #The goal position where the parcel will be placed in the roller cage (in respect to the roller cage frame)
+        self.start_position = _start_position #The position where the parcel is placed (in respect to the camera frame)
 
         #Rotates a parcel around an axis: 'x', 'y', or 'z'.
     def rotate_parcel(self, axis):
