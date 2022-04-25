@@ -25,32 +25,32 @@ class converter():
 
         #Convert camera frame to robot frame
         #robot frame             camera frame
-        # o----->                ^
-        # |    x                 | x
-        # | y                    |    y
-        # v                      o----->
+        #       ^                       ^
+        #      x|                       | x
+        #    y  |                       |    y
+        # <-----o                       o----->
 
         #How much the camera frame is displaced from the robot's frame
         cam_x_displacement = 7
         cam_y_displacement = 0
         cam_z_displacement = 2
         #Calculate the point with respect to the robot's frame
-        converted_data.start_pos.x = data.start_pos.y + cam_x_displacement
-        converted_data.start_pos.y = data.start_pos.x * -1 + cam_y_displacement
+        converted_data.start_pos.x = data.start_pos.x + cam_x_displacement
+        converted_data.start_pos.y = data.start_pos.y * -1 + cam_y_displacement
         converted_data.start_pos.z = data.start_pos.z * -1 + cam_z_displacement
 
         #Convert roller_cage frame to robot frame
         #robot frame             roller cage frame
-        # o----->                ^
-        # |    x                 | y
-        # | y                    |    x
-        # v                      o----->
+        #       ^                       ^
+        #      x|                       | y
+        #    y  |                       |    x
+        # <-----o                       o----->
         #How much the roller cage frame is displaced from the robot's frame
         cage_x_displacement = -8
         cage_y_displacement = 4
         cage_z_displacement = -2
-        converted_data.end_pos.x = data.end_pos.x + cage_x_displacement
-        converted_data.end_pos.y = data.end_pos.y * -1 + cage_y_displacement
+        converted_data.end_pos.x = data.end_pos.y + cage_x_displacement
+        converted_data.end_pos.y = data.end_pos.x * -1 + cage_y_displacement
         converted_data.end_pos.z = data.end_pos.z + cage_z_displacement
 
         rospy.loginfo(rospy.get_caller_id() + "Converted frames %s", converted_data)

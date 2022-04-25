@@ -33,10 +33,8 @@ roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_m
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			%ROSTOPIC PUB COMMANDS
-rostopic pub /vision/parcel_raw read_camera/Parcel -- '[0.4, 0.2, 0.1]' '45' '[0.4, 0.4, 0.0]'
 
-
-rostopic pub /workspace/add_parcel bin_packing/Packing_info -- '[0.4, 0.2, 0.1]' '[0.4, 0.4, 0.0]' '[-0.4, -0.4, 0.0]' '45' '1' '0'
+rostopic pub /robot/pick_place bin_packing/Packing_info '[0.2, 0, 0.1]' '[0, -0.5, 0.1]' '[0, 0.5, 0.1]' '0' '0' '0'
 
 
 
