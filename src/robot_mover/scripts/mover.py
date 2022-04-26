@@ -35,9 +35,12 @@ class mover:
         self.planning_frame = self.group.get_planning_frame()
         self.eef_link = self.group.get_end_effector_link()
 
+        self.parcels_packed = 0
+
         rospy.sleep(2)
 
         self.add_environment()
+        self.clear_workspace()
         
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
         rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
@@ -122,9 +125,10 @@ class mover:
         parcel_pose.pose.orientation.y = rot_quat[1]
         parcel_pose.pose.orientation.z = rot_quat[2] #parcel.angle
         parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
-        parcel_name = "parcel"
+        parcel_name = "parcel" + str(self.parcels_packed)
 
         self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
+        #self.scene.add_box("temp_parcel", parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z)) #Temp parcel that helps with collision when planning to pick_parcel
 
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
         # x: -180 is the default rotation for the gripper
@@ -183,21 +187,29 @@ class mover:
         self.update_end_goal(parcel.end_pos)
         self.pick_parcel(picking_pose.pose, parcel.size)
 
+
+    def clear_workspace(self):
+        print("Clearing workspace")
+        for i in range(10):
+            self.scene.remove_world_object("parcel" + str(i))
+            self.scene.remove_world_object("temp_parcel")
+
     def connect_parcel(self):
         print("connect to parcel!")
         grasping_group = 'manipulator'
         touch_links = self.robot.get_link_names(group=grasping_group)
-        self.scene.attach_box(self.eef_link, "parcel", touch_links=touch_links)
+        self.scene.attach_box(self.eef_link, "parcel"+ str(self.parcels_packed), touch_links=touch_links)
         #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
         #set_io(fun = 1, pin = 0 ,state = 1)
-        print("Parcel Connected?")
+
 
     def detach_parcel(self):
         print("detaching parcel!")
-        self.scene.remove_attached_object(self.eef_link, name="parcel")
-        self.scene.remove_world_object("parcel")
+        self.scene.remove_attached_object(self.eef_link, name="parcel" + str(self.parcels_packed))
+        #self.scene.remove_world_object("parcel")
         #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
-        #set_io(fun = 1, pin = 0 ,state = 0)          
+        #set_io(fun = 1, pin = 0 ,state = 0)     
+        
 
     def go_to_pick_ready(self):
         print("Going to pick_ready")
@@ -206,8 +218,6 @@ class mover:
         plan = self.group.go(wait=True)
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
-
-        self.group.clear_pose_targets()
 
         print("Did plan succeed: ", plan)
 
@@ -221,9 +231,9 @@ class mover:
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
 
-        self.group.clear_pose_targets()
-
         print("Did plan succeed: ", plan)
+        self.scene.remove_world_object("temp_parcel")
+
 
         return plan
 
@@ -238,7 +248,7 @@ class mover:
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
 
-        self.group.clear_pose_targets()
+        self.a = pose_goal
 
         if plan==1:
             rospy.sleep(1)
@@ -247,6 +257,13 @@ class mover:
             self.go_to_pick_ready()          
             self.go_to_pack_ready()
             self.place_parcel()
+            self.detach_parcel()
+            self.go_to_pack_ready()
+            self.go_to_pick_ready()
+
+        self.group.clear_pose_targets()
+
+        self.parcels_packed = self.parcels_packed + 1
 
     def update_end_goal(self, goal):
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
@@ -279,12 +296,9 @@ class mover:
         self.group.stop()
 
         print("Did plan succeed: ", plan)
-        if plan == 1:
-            self.detach_parcel()
-            self.go_to_pack_ready()
-            self.go_to_pick_ready()
 
-        self.group.clear_pose_targets()
+        return plan
+
 
 
 def main():
