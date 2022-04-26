@@ -42,6 +42,7 @@ class mover:
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
         rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
         self.go_to_pick_ready()
+        #self.print_info()
 
     def print_info(self):
         print("end effector: ", self.eef_link)
@@ -126,10 +127,11 @@ class mover:
         self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
 
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
-        # x: 90 is the default rotation for the gripper
+        # x: -180 is the default rotation for the gripper
         # x: parcel.angle is the rotation of the parcel detected by the camera
         # x: parcel.parcel_rotation is for rotating the parcel +90 deg on the vertical axis
-        rot = Rotation.from_euler('xyz', [90 + parcel.angle + parcel.parcel_rotation, 90, 0], degrees=True)
+        #rot = Rotation.from_euler('xyz', [90 + parcel.angle + parcel.parcel_rotation, 90, 0], degrees=True)
+        rot = Rotation.from_euler('xyz', [-180, 0, 180 + parcel.angle], degrees=True)
         rot_quat = rot.as_quat()
 
         picking_pose = geometry_msgs.msg.PoseStamped()
@@ -140,7 +142,7 @@ class mover:
 
         picking_pose.pose.position.x = parcel.start_pos.x
         picking_pose.pose.position.y = parcel.start_pos.y
-        picking_pose.pose.position.z = parcel.start_pos.z - 0.014  #- 0.014 as the table is lower than the robot frame 
+        picking_pose.pose.position.z = parcel.start_pos.z - 0.013  #- 0.014 as the table is lower than the robot frame 
 
 
         # if parcel.picking_side == 1:
@@ -225,26 +227,6 @@ class mover:
 
         return plan
 
-    #Uses forward kinematics to move the robot up after grabbing a parcel.
-    def move_up(self):
-        print("Moving up using forward kinematics")
-        # We can get the joint values from the group and adjust some of the values:
-        pi = 3.14
-        joint_goal = self.group.get_current_joint_values()
-        joint_goal[1] = joint_goal[1] -pi/10 #-17 deg
-        joint_goal[2] = joint_goal[2] -pi/10
-        # joint_goal[3] = pi/4
-        # joint_goal[4] = pi/2
-        # joint_goal[5] = -pi/4
-
-        print("Joint goal: ", joint_goal)
-
-        # The go command can be called with joint values, poses, or without any
-        # parameters if you have already set the pose or joint target for the group
-        self.group.go(joint_goal, wait=True)
-        print("Move up finished")
-
-
     def pick_parcel(self, pose, size):
         pose_goal = geometry_msgs.msg.Pose()
         pose_goal = pose
@@ -259,8 +241,9 @@ class mover:
         self.group.clear_pose_targets()
 
         if plan==1:
-            rospy.sleep(0.5)
+            rospy.sleep(1)
             self.connect_parcel()
+            rospy.sleep(1)
             self.go_to_pick_ready()          
             self.go_to_pack_ready()
             self.place_parcel()
@@ -268,7 +251,7 @@ class mover:
     def update_end_goal(self, goal):
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
         # x: 270 is the opposite of the picking placement.
-        rot = Rotation.from_euler('xyz', [270, 90, 0], degrees=True)
+        rot = Rotation.from_euler('xyz', [-180, 0, 0], degrees=True)
         rot_quat = rot.as_quat()
 
         pose_goal = geometry_msgs.msg.Pose()
