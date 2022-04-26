@@ -34,7 +34,12 @@ roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			%ROSTOPIC PUB COMMANDS
 
+%Publish commando directly to the robot (robot frame)
 rostopic pub /robot/pick_place bin_packing/Packing_info '[0.2, 0, 0.1]' '[0, -0.5, 0.1]' '[0, 0.5, 0.1]' '0' '0' '0'
+
+%Publish commando that will be converted from cam & roller cage frame to robot frame
+rostopic pub /workspace/add_parcel bin_packing/Packing_info '[0.2, 0, 0.1]' '[0, -0.5, 0.1]' '[0, 0, 0]' '0' '0' '0'
+
 
 
 

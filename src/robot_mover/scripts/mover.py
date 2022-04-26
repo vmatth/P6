@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 import sys
-import copy
 import rospy
 import moveit_commander
 import moveit_msgs.msg
@@ -36,7 +35,6 @@ class mover:
         self.planning_frame = self.group.get_planning_frame()
         self.eef_link = self.group.get_end_effector_link()
 
-
         rospy.sleep(2)
 
         self.add_environment()
@@ -55,14 +53,23 @@ class mover:
         
     def add_environment(self):
         print("Adding environment")
+        small_table_pose = geometry_msgs.msg.PoseStamped()
+        small_table_pose.header.frame_id = "base_link"
+        small_table_pose.pose.orientation.w = 1.0
+        small_table_pose.pose.position.x = 0
+        small_table_pose.pose.position.y = -0.065
+        small_table_pose.pose.position.z = -0.014
+        small_table_name = "small_table"
+        self.scene.add_box(small_table_name, small_table_pose, size=(0.39, 0.39, 0.018))
+
         table_pose = geometry_msgs.msg.PoseStamped()
         table_pose.header.frame_id = "base_link"
         table_pose.pose.orientation.w = 1.0
         table_pose.pose.position.x = 0
         table_pose.pose.position.y = -0.31
-        table_pose.pose.position.z = -0.045
+        table_pose.pose.position.z = -0.055
         table_name = "table"
-        self.scene.add_box(table_name, table_pose, size=(0.41, 0.93, 0.08))
+        self.scene.add_box(table_name, table_pose, size=(0.41, 0.93, 0.084))
         
         backboard_pose = geometry_msgs.msg.PoseStamped()
         backboard_pose.header.frame_id = "base_link"
@@ -107,7 +114,9 @@ class mover:
 
         parcel_pose.pose.position.x = parcel.start_pos.x
         parcel_pose.pose.position.y = parcel.start_pos.y 
-        parcel_pose.pose.position.z = parcel.start_pos.z - (parcel.size.z/2) - 0.01 #-0.01 for small buffer (or else robot does werid movements)
+        parcel_pose.pose.position.z = parcel.size.z/2 - 0.014#- 0.014 as the table is lower than the robot frame   
+        
+        #parcel.start_pos.z - (parcel.size.z/2) - 0.02 #-0.01 for small buffer (or else robot does weird movements)
         parcel_pose.pose.orientation.x = rot_quat[0]
         parcel_pose.pose.orientation.y = rot_quat[1]
         parcel_pose.pose.orientation.z = rot_quat[2] #parcel.angle
@@ -131,7 +140,7 @@ class mover:
 
         picking_pose.pose.position.x = parcel.start_pos.x
         picking_pose.pose.position.y = parcel.start_pos.y
-        picking_pose.pose.position.z = parcel.start_pos.z
+        picking_pose.pose.position.z = parcel.start_pos.z - 0.014  #- 0.014 as the table is lower than the robot frame 
 
 
         # if parcel.picking_side == 1:
@@ -174,7 +183,7 @@ class mover:
 
     def connect_parcel(self):
         print("connect to parcel!")
-        grasping_group = 'endeffector'
+        grasping_group = 'manipulator'
         touch_links = self.robot.get_link_names(group=grasping_group)
         self.scene.attach_box(self.eef_link, "parcel", touch_links=touch_links)
         #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
@@ -215,6 +224,26 @@ class mover:
         print("Did plan succeed: ", plan)
 
         return plan
+
+    #Uses forward kinematics to move the robot up after grabbing a parcel.
+    def move_up(self):
+        print("Moving up using forward kinematics")
+        # We can get the joint values from the group and adjust some of the values:
+        pi = 3.14
+        joint_goal = self.group.get_current_joint_values()
+        joint_goal[1] = joint_goal[1] -pi/10 #-17 deg
+        joint_goal[2] = joint_goal[2] -pi/10
+        # joint_goal[3] = pi/4
+        # joint_goal[4] = pi/2
+        # joint_goal[5] = -pi/4
+
+        print("Joint goal: ", joint_goal)
+
+        # The go command can be called with joint values, poses, or without any
+        # parameters if you have already set the pose or joint target for the group
+        self.group.go(joint_goal, wait=True)
+        print("Move up finished")
+
 
     def pick_parcel(self, pose, size):
         pose_goal = geometry_msgs.msg.Pose()

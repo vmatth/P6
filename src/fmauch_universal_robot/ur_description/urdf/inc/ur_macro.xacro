@@ -339,19 +339,20 @@
       <parent link="${prefix}tool0"/>
       <child link="measurement_tool"/>
       <!-- The tool is directly attached to the flange. -->
+      <!--6.3 x 8.5 x 16 cm-->
       <origin rpy="0 0 1.57" xyz="0 -0.03 -0.04"/>
     </joint>
     <link name="measurement_tool">
       <visual>
         <geometry>
           <!-- The path to the visual meshes in the package. -->
-          <mesh filename="package://robot_mover/meshes/visual/end_effector.dae" scale="1.0 1.75 1.0"/>
+          <mesh filename="package://robot_mover/meshes/visual/end_effector.dae" scale="1.0 1.5375 1.0"/>
         </geometry>
       </visual>
       <collision>
         <geometry>
           <!-- The path to the collision meshes in the package. -->
-          <mesh filename="package://robot_mover/meshes/collision/end_effector.dae" scale="1.0 1.5 1.0"/>
+          <mesh filename="package://robot_mover/meshes/collision/end_effector.dae" scale="1.0 1.5375 1.0"/>
         </geometry>
       </collision>
     </link>
