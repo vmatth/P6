@@ -56,7 +56,7 @@ class packing_visualization:
         sizes = []
         colors = []
         for i in range(0, len(data.parcels)):
-            positions.append((data.parcels[i].pos.x, data.parcels[i].pos.y, data.parcels[i].pos.z))
+            positions.append((data.parcels[i].end_pos.x, data.parcels[i].end_pos.y, data.parcels[i].end_pos.z))
             sizes.append((data.parcels[i].size.x, data.parcels[i].size.y, data.parcels[i].size.z))
             colors.append('#3c94ec4d')
 
@@ -78,7 +78,7 @@ class packing_visualization:
     def parcel_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
         #call add_parcel()
-        p = parcel((data.pos.x, data.pos.y, data.pos.z), (data.size.x, data.size.y, data.size.z))
+        p = parcel((data.end_pos.x, data.end_pos.y, data.end_pos.z), (data.size.x, data.size.y, data.size.z))
         self.add_parcel(p)
 
 

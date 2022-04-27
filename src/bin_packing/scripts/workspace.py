@@ -30,9 +30,9 @@ class workspace:
         self.parcels.append(data)
 
         #Add parcel to height map, by changing each pixel (x,y) to the height
-        for x in range(int(data.pos.x), int(data.pos.x) + int(data.size.x)):
-            for y in range(int(data.pos.y), int(data.pos.y) + int(data.size.y)):
-                self.height_map[x][y] = int(data.size.z) + int(data.pos.z)
+        for x in range(int(data.end_pos.x), int(data.end_pos.x) + int(data.size.x)):
+            for y in range(int(data.end_pos.y), int(data.end_pos.y) + int(data.size.y)):
+                self.height_map[x][y] = int(data.size.z) + int(data.end_pos.z)
             
         self.update_workspace()
         

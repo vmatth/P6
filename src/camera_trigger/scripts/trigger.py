@@ -182,7 +182,7 @@ if __name__ == '__main__':
     dd = depth_dectect()  
     rospy.init_node('trigger_node', anonymous=True)
     #define pub her
-    pub = rospy.Publisher('/vision/frame_acq/parcel_info', Parcel, queue_size=10)
+    pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
     print("hi jepper")
     while not rospy.is_shutdown():
         with keyboard.Listener(

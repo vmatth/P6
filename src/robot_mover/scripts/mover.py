@@ -43,7 +43,7 @@ class mover:
         self.clear_workspace()
         
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
-        rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
+        #rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
         self.go_to_pick_ready()
         #self.print_info()
 
