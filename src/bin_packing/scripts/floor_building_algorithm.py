@@ -279,7 +279,7 @@ class floor_building:
                 parcel_rotation = 90
 
                 
-            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, Point(original_parcel.size.x, original_parcel.size.y, original_parcel.size.z), picking_side, parcel_rotation)
+            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, original_parcel.size, picking_side, parcel_rotation)
 
         elif len(xyzlist) <= 0:
             return False
