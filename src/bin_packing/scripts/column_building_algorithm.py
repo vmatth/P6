@@ -17,7 +17,7 @@ from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 class floor_building:
     def __init__(self):
-        print("init floor building")
+        print("init column building")
 
         self.workspace_size = Point(0, 0, 0)
         self.height_map = [[]]
@@ -224,10 +224,10 @@ class floor_building:
                 #print("temppp, ", temp)
                 #print("xyzlist", xyzlist[i])
                 #print("temp[4]", temp[4], "xyzlist[4]", xyzlist[i][4]) 
-                if xyzlist[i][2] < temp[2]:
+                if xyzlist[i][2] > temp[2]: 
                     temp = xyzlist[i]
                     #print("new temp ", temp)
-                elif xyzlist[i][4] < temp[4] and xyzlist[i][2] <= temp[2]:
+                elif xyzlist[i][4] > temp[4] and xyzlist[i][2] >= temp[2]:
                     temp = xyzlist[i]
                     #print("new temp ", temp)
             #print("parcel: ", _parcel.size.x, _parcel.size.y, _parcel.size.z)            
@@ -279,7 +279,7 @@ class floor_building:
                 parcel_rotation = 90
 
                 
-            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, original_parcel.size, picking_side, parcel_rotation)
+            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, Point(original_parcel.size.x, original_parcel.size.y, original_parcel.size.z), picking_side, parcel_rotation)
 
         elif len(xyzlist) <= 0:
             return False
@@ -308,7 +308,7 @@ class floor_building:
 
 
 def main():
-    rospy.init_node('floor_building_algorithm', anonymous=True)
+    rospy.init_node('column_building_algorithm', anonymous=True)
     fb =  floor_building() #Create a new instance of the first fit class
     #spin
     rospy.spin()

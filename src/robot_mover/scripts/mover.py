@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 import sys
-import copy
 import rospy
 import moveit_commander
 import moveit_msgs.msg
@@ -36,14 +35,17 @@ class mover:
         self.planning_frame = self.group.get_planning_frame()
         self.eef_link = self.group.get_end_effector_link()
 
+        self.parcels_packed = 0
 
         rospy.sleep(2)
 
         self.add_environment()
+        self.clear_workspace()
         
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
-        rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
+        #rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
         self.go_to_pick_ready()
+        #self.print_info()
 
     def print_info(self):
         print("end effector: ", self.eef_link)
@@ -55,14 +57,23 @@ class mover:
         
     def add_environment(self):
         print("Adding environment")
+        small_table_pose = geometry_msgs.msg.PoseStamped()
+        small_table_pose.header.frame_id = "base_link"
+        small_table_pose.pose.orientation.w = 1.0
+        small_table_pose.pose.position.x = 0
+        small_table_pose.pose.position.y = -0.065
+        small_table_pose.pose.position.z = -0.014
+        small_table_name = "small_table"
+        self.scene.add_box(small_table_name, small_table_pose, size=(0.39, 0.39, 0.018))
+
         table_pose = geometry_msgs.msg.PoseStamped()
         table_pose.header.frame_id = "base_link"
         table_pose.pose.orientation.w = 1.0
         table_pose.pose.position.x = 0
         table_pose.pose.position.y = -0.31
-        table_pose.pose.position.z = -0.045
+        table_pose.pose.position.z = -0.055
         table_name = "table"
-        self.scene.add_box(table_name, table_pose, size=(0.41, 0.93, 0.08))
+        self.scene.add_box(table_name, table_pose, size=(0.41, 0.93, 0.084))
         
         backboard_pose = geometry_msgs.msg.PoseStamped()
         backboard_pose.header.frame_id = "base_link"
@@ -107,20 +118,24 @@ class mover:
 
         parcel_pose.pose.position.x = parcel.start_pos.x
         parcel_pose.pose.position.y = parcel.start_pos.y 
-        parcel_pose.pose.position.z = parcel.start_pos.z - (parcel.size.z/2) - 0.01 #-0.01 for small buffer (or else robot does werid movements)
+        parcel_pose.pose.position.z = parcel.size.z/2 - 0.014#- 0.014 as the table is lower than the robot frame   
+        
+        #parcel.start_pos.z - (parcel.size.z/2) - 0.02 #-0.01 for small buffer (or else robot does weird movements)
         parcel_pose.pose.orientation.x = rot_quat[0]
         parcel_pose.pose.orientation.y = rot_quat[1]
         parcel_pose.pose.orientation.z = rot_quat[2] #parcel.angle
         parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
-        parcel_name = "parcel"
+        parcel_name = "parcel" + str(self.parcels_packed)
 
         self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
+        #self.scene.add_box("temp_parcel", parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z)) #Temp parcel that helps with collision when planning to pick_parcel
 
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
-        # x: 90 is the default rotation for the gripper
+        # x: -180 is the default rotation for the gripper
         # x: parcel.angle is the rotation of the parcel detected by the camera
         # x: parcel.parcel_rotation is for rotating the parcel +90 deg on the vertical axis
-        rot = Rotation.from_euler('xyz', [90 + parcel.angle + parcel.parcel_rotation, 90, 0], degrees=True)
+        #rot = Rotation.from_euler('xyz', [90 + parcel.angle + parcel.parcel_rotation, 90, 0], degrees=True)
+        rot = Rotation.from_euler('xyz', [-180, 0, 180 + parcel.angle], degrees=True)
         rot_quat = rot.as_quat()
 
         picking_pose = geometry_msgs.msg.PoseStamped()
@@ -131,7 +146,7 @@ class mover:
 
         picking_pose.pose.position.x = parcel.start_pos.x
         picking_pose.pose.position.y = parcel.start_pos.y
-        picking_pose.pose.position.z = parcel.start_pos.z
+        picking_pose.pose.position.z = parcel.start_pos.z - 0.013  #- 0.014 as the table is lower than the robot frame 
 
 
         # if parcel.picking_side == 1:
@@ -172,21 +187,29 @@ class mover:
         self.update_end_goal(parcel.end_pos)
         self.pick_parcel(picking_pose.pose, parcel.size)
 
+
+    def clear_workspace(self):
+        print("Clearing workspace")
+        for i in range(10):
+            self.scene.remove_world_object("parcel" + str(i))
+            self.scene.remove_world_object("temp_parcel")
+
     def connect_parcel(self):
         print("connect to parcel!")
-        grasping_group = 'endeffector'
+        grasping_group = 'manipulator'
         touch_links = self.robot.get_link_names(group=grasping_group)
-        self.scene.attach_box(self.eef_link, "parcel", touch_links=touch_links)
+        self.scene.attach_box(self.eef_link, "parcel"+ str(self.parcels_packed), touch_links=touch_links)
         #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
         #set_io(fun = 1, pin = 0 ,state = 1)
-        print("Parcel Connected?")
+
 
     def detach_parcel(self):
         print("detaching parcel!")
-        self.scene.remove_attached_object(self.eef_link, name="parcel")
-        self.scene.remove_world_object("parcel")
+        self.scene.remove_attached_object(self.eef_link, name="parcel" + str(self.parcels_packed))
+        #self.scene.remove_world_object("parcel")
         #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
-        #set_io(fun = 1, pin = 0 ,state = 0)          
+        #set_io(fun = 1, pin = 0 ,state = 0)     
+        
 
     def go_to_pick_ready(self):
         print("Going to pick_ready")
@@ -195,8 +218,6 @@ class mover:
         plan = self.group.go(wait=True)
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
-
-        self.group.clear_pose_targets()
 
         print("Did plan succeed: ", plan)
 
@@ -210,9 +231,9 @@ class mover:
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
 
-        self.group.clear_pose_targets()
-
         print("Did plan succeed: ", plan)
+        self.scene.remove_world_object("temp_parcel")
+
 
         return plan
 
@@ -227,19 +248,27 @@ class mover:
         # Calling ``stop()`` ensures that there is no residual movement
         self.group.stop()
 
-        self.group.clear_pose_targets()
+        self.a = pose_goal
 
         if plan==1:
-            rospy.sleep(0.5)
+            rospy.sleep(1)
             self.connect_parcel()
+            rospy.sleep(1)
             self.go_to_pick_ready()          
             self.go_to_pack_ready()
             self.place_parcel()
+            self.detach_parcel()
+            self.go_to_pack_ready()
+            self.go_to_pick_ready()
+
+        self.group.clear_pose_targets()
+
+        self.parcels_packed = self.parcels_packed + 1
 
     def update_end_goal(self, goal):
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
         # x: 270 is the opposite of the picking placement.
-        rot = Rotation.from_euler('xyz', [270, 90, 0], degrees=True)
+        rot = Rotation.from_euler('xyz', [-180, 0, 0], degrees=True)
         rot_quat = rot.as_quat()
 
         pose_goal = geometry_msgs.msg.Pose()
@@ -267,12 +296,9 @@ class mover:
         self.group.stop()
 
         print("Did plan succeed: ", plan)
-        if plan == 1:
-            self.detach_parcel()
-            self.go_to_pack_ready()
-            self.go_to_pick_ready()
 
-        self.group.clear_pose_targets()
+        return plan
+
 
 
 def main():

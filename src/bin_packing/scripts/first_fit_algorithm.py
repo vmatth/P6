@@ -37,7 +37,7 @@ class first_fit:
     #Callback function when a new parcel is published to the /parcel_info topic
     def parcel_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
-        p = parcel(Point(0,0,0), data.size)
+        p = parcel(Point(0,0,0), data.size, data.centerpoint)
         self.start_first_fit(p)
 
     #Returns if the parcel is in the workspace bounds at (x,y) position
@@ -125,7 +125,7 @@ class first_fit:
                     #print("supported: ", supported, " at: ", Point(x,y,z))
                     if supported is True:
                         #Publish to a ros topic
-                        self.packing_pub(Point(x, y, z), parcel.size)
+                        self.packing_pub(Point(x, y, z), parcel.size, parcel.start_position)
                         return (x,y,z) #Return x,y coordinate for parcel
             
         return False
@@ -146,11 +146,13 @@ class first_fit:
                                 print("Parcel cannot be packed into the roller cage")
                                 rospy.sleep(999)
 
-    def packing_pub(self, pos, size):
+    def packing_pub(self, end_pos, size, start_pos):
         msg = Packing_info()
 
         msg.size = size
-        msg.pos = pos
+        msg.end_pos = end_pos
+        msg.start_pos = start_pos 
+
 
         print(msg)
 
