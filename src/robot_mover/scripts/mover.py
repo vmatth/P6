@@ -146,7 +146,7 @@ class mover:
 
         picking_pose.pose.position.x = parcel.start_pos.x
         picking_pose.pose.position.y = parcel.start_pos.y
-        picking_pose.pose.position.z = parcel.start_pos.z - 0.013  #- 0.014 as the table is lower than the robot frame 
+        picking_pose.pose.position.z = parcel.start_pos.z - 0.009  #- 0.014 as the table is lower than the robot frame 
 
 
         # if parcel.picking_side == 1:
@@ -199,16 +199,16 @@ class mover:
         grasping_group = 'manipulator'
         touch_links = self.robot.get_link_names(group=grasping_group)
         self.scene.attach_box(self.eef_link, "parcel"+ str(self.parcels_packed), touch_links=touch_links)
-        #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
-        #set_io(fun = 1, pin = 0 ,state = 1)
+        set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
+        set_io(fun = 1, pin = 0 ,state = 1)
 
 
     def detach_parcel(self):
         print("detaching parcel!")
         self.scene.remove_attached_object(self.eef_link, name="parcel" + str(self.parcels_packed))
-        #self.scene.remove_world_object("parcel")
-        #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
-        #set_io(fun = 1, pin = 0 ,state = 0)     
+        self.scene.remove_world_object("parcel")
+        set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
+        set_io(fun = 1, pin = 0 ,state = 0)     
         
 
     def go_to_pick_ready(self):
@@ -251,10 +251,10 @@ class mover:
         self.a = pose_goal
 
         if plan==1:
-            rospy.sleep(1)
+            rospy.sleep(0.5)
             self.connect_parcel()
-            rospy.sleep(1)
-            self.go_to_pick_ready()          
+            rospy.sleep(0.5)
+            #self.go_to_pick_ready()          
             self.go_to_pack_ready()
             self.place_parcel()
             self.detach_parcel()
@@ -267,7 +267,7 @@ class mover:
 
     def update_end_goal(self, goal):
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
-        # x: 270 is the opposite of the picking placement.
+        # x: -180 is the opposite of the picking placement.
         rot = Rotation.from_euler('xyz', [-180, 0, 0], degrees=True)
         rot_quat = rot.as_quat()
 
@@ -304,21 +304,6 @@ class mover:
 def main():
     #lav en instance af klassen
     mi = mover()
-
-    # We can get the joint values from the group and adjust some of the values:
-    # joint_goal = group.get_current_joint_values()
-    # joint_goal[0] = 0
-    # joint_goal[1] = -pi/4
-    # joint_goal[2] = 0
-    # joint_goal[3] = -pi/2
-    # joint_goal[4] = 0
-    # joint_goal[5] = pi/3
-    #joint_goal[6] = 0
-
-    # The go command can be called with joint values, poses, or without any
-    # parameters if you have already set the pose or joint target for the group
-    #group.go(joint_goal, wait=True)
-
 
     rospy.spin()    
 
