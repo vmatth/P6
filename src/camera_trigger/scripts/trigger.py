@@ -26,7 +26,7 @@ class depth_dectect:
         self.threshold_depth = None #distances higher than this are removed
         self.cam_height = 104.1 #cm
 
-        self.pix_per_cm = 11.4 #pix / cm ### fix so its not static
+        self.cm_per_pixel = None #pix / cm ### fix so its not static
         self.depth_list = []
         self.counter = 0
 
@@ -104,7 +104,7 @@ class depth_dectect:
     def thresholding(self, depth_data):
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
-            depth_image = depth_image[263:785, 644:1058]
+            depth_image = depth_image[263:785, 644:1050]
             height = depth_image.shape[0]
             width = depth_image.shape[1]
             print("height width", height, width)
@@ -146,16 +146,34 @@ class depth_dectect:
                     centerpoint = (centerpoint_x, centerpoint_y)
                     center = rect[0]
 
+                    print("centerpont: ", centerpoint)
+                    print("dim ,", depth_image.shape)
+
                     #Get pixel value at centerpoint
-                    if(centerpoint_x >= depth_image.shape[0] or centerpoint_y >= depth_image.shape[1]): #Check if all 4 corners are available, or else it returns error
+                    if(centerpoint_x >= depth_image.shape[1] or centerpoint_y >= depth_image.shape[0]): #Check if all 4 corners are available, or else it returns error
                         print("Centerpoint cannot be found in depth image")
                     else:
                         #Calculate dimensions & angle
-                        distance_to_parcel = (depth_image[centerpoint_x][centerpoint_y]) / 10 #Calculate distance in [cm] 
+                        distance_to_parcel = (depth_image[centerpoint_y][centerpoint_x]) / 10 #Calculate distance in [cm] 
                         #print("testtstst: ", depth_image[centerpoint_x][centerpoint_y])
                         print("distance to parcel: ", distance_to_parcel)
                         print("WIDTH IN PIXELS", rect[1][1])
-                        print("LENGHT IN PIXELS", rect[1][0]) 
+                        print("LENGHT IN PIXELS", rect[1][0])
+
+                        #self.cm_per_pixel = 0.00099063 * ((depth_image[centerpoint_y][centerpoint_x]) / 10)
+                        self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
+                        # print("cm per pixel: ", self.cm_per_pixel)
+                        width = (rect[1][1])*self.cm_per_pixel
+                        length = (rect[1][0])*self.cm_per_pixel
+                        heigth = self.cam_height - distance_to_parcel
+                        angle = rect[2]
+                        print("Parcel width [cm]", width)
+                        print("Parcel length [cm]", length)
+                        print("Parcel height [cm]", height)
+                        print("Parcel angle ", angle) 
+                        # #Call parcel_pub function
+                        # self.parcel_pub((rect[1][1])/self.cm_per_pixel, (rect[1][0])/self.cm_per_pixel, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
+                        # #Overlay centerpoint and contours to rgb and depth images
 
 
                     # 3d_in_cm = conversion * 2d_line * depth

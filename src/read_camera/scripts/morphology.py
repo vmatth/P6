@@ -38,8 +38,8 @@ class image_converter:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
 
             #Crop image to only have the parcel in focus - removes unnecesarry items
-            rgb_image = rgb_image[263:785, 635:1058]
-            depth_image = depth_image[263:785, 635:1058]            
+            rgb_image = rgb_image[263:785, 644:1058]
+            depth_image = depth_image[263:785, 644:1058]            
 
             #Grayscale image
             grayscale_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
