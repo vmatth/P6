@@ -266,7 +266,7 @@ class floor_building:
                 original_parcel.rotate_parcel('y')  
                 original_parcel.rotate_parcel('z')
                 original_parcel.rotate_parcel('y')
-                picking_side == 3
+                picking_side = 3
                 parcel_rotation = 0
             elif temp[3] == 5:
                 print("Rotated parcel 5 times")
@@ -275,7 +275,7 @@ class floor_building:
                 original_parcel.rotate_parcel('z')
                 original_parcel.rotate_parcel('y')
                 original_parcel.rotate_parcel('z')
-                picking_side == 3
+                picking_side = 3
                 parcel_rotation = 90
 
                 
