@@ -24,7 +24,7 @@ class image_converter:
         ##########################################################################
         
         #Udregn hver gang setup aendres, ved at dividere bredden eller hoejden i pixels, over bredden eller hoejden af et kendt objekt i cm.
-        self.pix_per_cm = 12.35
+        self.pix_per_cm = 12.35 #Dynamisk
 
         #Skal kalibreres hver gang setup aendres.
         self.cam_height = 102.5
@@ -38,7 +38,7 @@ class image_converter:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
 
             #Crop image to only have the parcel in focus - removes unnecesarry items
-            rgb_image = rgb_image[263:785, 644:1058]
+            rgb_image = rgb_image[242:785, 638:1050] 
             depth_image = depth_image[263:785, 644:1058]            
 
             #Grayscale image
@@ -73,6 +73,10 @@ class image_converter:
             #_, contours_closing, _= cv2.findContours(closing_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #Image for contours can be opening_image or edge_image
             #Bounding box with rotated rect
             i = 0
+
+            cv2.circle(rgb_image, (200,200), 3, (10000, 10000, 10000), -1)
+
+
             for cnt in contours:
                 print("------------------")
                 print("Parcel [",i,"] found")
@@ -116,7 +120,7 @@ class image_converter:
 
             cv2.waitKey(3)
             #Show images
-            #cv2.imshow("Raw Image", rgb_image)
+            cv2.imshow("Raw Image", rgb_image)
             #cv2.imshow("Grayscale Image", grayscale_image)
             #cv2.imshow("Blurred Image", blur_image)
             cv2.imshow("Threshold", thresh_image)

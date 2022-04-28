@@ -30,20 +30,20 @@ class converter():
         #    y  |                       |    y
         # <-----o                       o----->
 
-        #How much the camera frame is displaced from the robot's frame
-        cam_x_displacement = 7
-        cam_y_displacement = 0
-        cam_z_displacement = 2
-        #Calculate the point with respect to the robot's frame
-        converted_data.start_pos.x = data.start_pos.x + cam_x_displacement
-        converted_data.start_pos.y = data.start_pos.y * -1 + cam_y_displacement
-        converted_data.start_pos.z = data.start_pos.z * -1 + cam_z_displacement
+        #How much the camera frame is displaced from the robot's frame [m] 
+        cam_x_displacement = -0.202
+        cam_y_displacement = -0.256
+        cam_z_displacement = 0
+        #Calculate the point with respect to the robot's frame (The incoming data is in cm so we convert to m)
+        converted_data.start_pos.x = (data.start_pos.x/100) + cam_x_displacement
+        converted_data.start_pos.y = (data.start_pos.y/100) * -1 + cam_y_displacement
+        converted_data.start_pos.z = (data.start_pos.z/100) + cam_z_displacement
 
         #Data from the packing algorithm is specified from the corner closest to (0,0) and not the center point which the robot uses.
-        #The next three lines converts it to a center point.
-        data.end_pos.x = data.end_pos.x + (data.size.x/2)
-        data.end_pos.y = data.end_pos.y + (data.size.y/2)
-        data.end_pos.z = data.end_pos.z + data.size.z
+        #The next three lines converts it to a center point. #We convert to m again
+        data.end_pos.x = data.end_pos.x + (data.size.x/100/2)
+        data.end_pos.y = data.end_pos.y + (data.size.y/100/2)
+        data.end_pos.z = data.end_pos.z + (data.size.z/100)
 
         #Convert roller_cage frame to robot frame
         #robot frame             roller cage frame
@@ -51,10 +51,10 @@ class converter():
         #      x|                       | y
         #    y  |                       |    x
         # <-----o                       o----->
-        #How much the roller cage frame is displaced from the robot's frame
-        cage_x_displacement = -0.36
-        cage_y_displacement = 0.94
-        cage_z_displacement = -0.18
+        #How much the roller cage frame is displaced from the robot's frame [m]
+        cage_x_displacement = -0.3 #-0.36
+        cage_y_displacement = 0.8 #0.94
+        cage_z_displacement = -0.15 #-0.18
         converted_data.end_pos.x = data.end_pos.y + cage_x_displacement
         converted_data.end_pos.y = data.end_pos.x * -1 + cage_y_displacement
         converted_data.end_pos.z = data.end_pos.z + cage_z_displacement

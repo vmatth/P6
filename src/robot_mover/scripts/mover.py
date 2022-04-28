@@ -44,7 +44,7 @@ class mover:
         
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
         #rospy.Subscriber("/workspace/info", Workspace, self.add_workspace)
-        self.go_to_pick_ready()
+        self.go_to_idle()
         #self.print_info()
 
     def print_info(self):
@@ -118,7 +118,7 @@ class mover:
 
         parcel_pose.pose.position.x = parcel.start_pos.x
         parcel_pose.pose.position.y = parcel.start_pos.y 
-        parcel_pose.pose.position.z = parcel.size.z/2 - 0.014#- 0.014 as the table is lower than the robot frame   
+        parcel_pose.pose.position.z = (parcel.size.z/100/2) - 0.014#- 0.014 as the table is lower than the robot frame   
         
         #parcel.start_pos.z - (parcel.size.z/2) - 0.02 #-0.01 for small buffer (or else robot does weird movements)
         parcel_pose.pose.orientation.x = rot_quat[0]
@@ -127,7 +127,7 @@ class mover:
         parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
         parcel_name = "parcel" + str(self.parcels_packed)
 
-        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z))
+        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x/100, parcel.size.y/100, parcel.size.z/100))
         #self.scene.add_box("temp_parcel", parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z)) #Temp parcel that helps with collision when planning to pick_parcel
 
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
@@ -135,6 +135,7 @@ class mover:
         # x: parcel.angle is the rotation of the parcel detected by the camera
         # x: parcel.parcel_rotation is for rotating the parcel +90 deg on the vertical axis
         #rot = Rotation.from_euler('xyz', [90 + parcel.angle + parcel.parcel_rotation, 90, 0], degrees=True)
+        print("PARCEL ANGLE: ", parcel.angle)
         rot = Rotation.from_euler('xyz', [-180, 0, 180 + parcel.angle], degrees=True)
         rot_quat = rot.as_quat()
 
@@ -185,6 +186,7 @@ class mover:
         #     picking_pose.pose.orientation.w = rot_quat[3] #quaternion
 
         self.update_end_goal(parcel.end_pos)
+        self.go_to_pick_ready()
         self.pick_parcel(picking_pose.pose, parcel.size)
 
 
@@ -210,6 +212,17 @@ class mover:
         set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
         set_io(fun = 1, pin = 0 ,state = 0)     
         
+    def go_to_idle(self):
+        print("Going to idle")
+        self.group.set_named_target("idle")
+    
+        plan = self.group.go(wait=True)
+        # Calling ``stop()`` ensures that there is no residual movement
+        self.group.stop()
+
+        print("Did plan succeed: ", plan)
+
+        return plan
 
     def go_to_pick_ready(self):
         print("Going to pick_ready")
@@ -259,7 +272,7 @@ class mover:
             self.place_parcel()
             self.detach_parcel()
             self.go_to_pack_ready()
-            self.go_to_pick_ready()
+            self.go_to_idle()
 
         self.group.clear_pose_targets()
 
