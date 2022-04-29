@@ -8,6 +8,7 @@ from bin_packing.msg import Packing_info
 
 class converter():
     def __init__(self):
+        print("workspace to robot node")
         rospy.init_node('workspace_to_robot_converter', anonymous=True)
         rospy.Subscriber("/workspace/add_parcel", Packing_info, self.convert_frames)   
         self.pub = rospy.Publisher('/robot/pick_place', Packing_info, queue_size=10)
@@ -19,7 +20,8 @@ class converter():
         converted_data.angle = data.angle
         converted_data.picking_side = data.picking_side
         converted_data.parcel_rotation = data.parcel_rotation
-        converted_data.size = data.size
+        converted_data.actual_size = data.actual_size
+        converted_data.rounded_size = data.rounded_size
 
         ##ALL DISTANCES ARE IN METRES
 
@@ -41,9 +43,9 @@ class converter():
 
         #Data from the packing algorithm is specified from the corner closest to (0,0) and not the center point which the robot uses.
         #The next three lines converts it to a center point. #We convert to m again
-        data.end_pos.x = data.end_pos.x + (data.size.x/100/2)
-        data.end_pos.y = data.end_pos.y + (data.size.y/100/2)
-        data.end_pos.z = data.end_pos.z + (data.size.z/100)
+        data.end_pos.x = data.end_pos.x + (data.actual_size.x/100/2)
+        data.end_pos.y = data.end_pos.y + (data.actual_size.y/100/2)
+        data.end_pos.z = data.end_pos.z + (data.actual_size.z/100)
 
         #Convert roller_cage frame to robot frame
         #robot frame             roller cage frame

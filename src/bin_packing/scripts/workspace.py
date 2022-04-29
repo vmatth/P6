@@ -30,9 +30,9 @@ class workspace:
         self.parcels.append(data)
 
         #Add parcel to height map, by changing each pixel (x,y) to the height
-        for x in range(int(data.end_pos.x), int(data.end_pos.x) + int(data.size.x)):
-            for y in range(int(data.end_pos.y), int(data.end_pos.y) + int(data.size.y)):
-                self.height_map[x][y] = int(data.size.z) + int(data.end_pos.z)
+        for x in range(int(data.end_pos.x), int(data.end_pos.x) + int(data.rounded_size.x)):
+            for y in range(int(data.end_pos.y), int(data.end_pos.y) + int(data.rounded_size.y)):
+                self.height_map[x][y] = int(data.rounded_size.z) + int(data.end_pos.z)
             
         self.update_workspace()
         
@@ -49,7 +49,7 @@ class workspace:
 
         parcelsV = []
         for i in range(len(self.parcels)):
-            parcel_volume = self.parcels[i].size.x * self.parcels[i].size.y * self.parcels[i].size.z 
+            parcel_volume = self.parcels[i].rounded_size.x * self.parcels[i].rounded_size.y * self.parcels[i].rounded_size.z 
             parcelsV.append(parcel_volume)
         
         #print("Parcel_volume: ", parcel_volume)
@@ -83,9 +83,9 @@ class workspace:
 def main():
     rospy.init_node('workspace', anonymous=True)
     #rosrun pkg node _x:=2 _y:5 _z:=10
-    x = rospy.get_param("~x", 60)
-    y = rospy.get_param("~y", 37)
-    z = rospy.get_param("~z", 85)
+    x = rospy.get_param("~x", 40)
+    y = rospy.get_param("~y", 40)
+    z = rospy.get_param("~z", 40)
 
     ws = workspace(x, y, z) #Create a new instance of the workspace class
     

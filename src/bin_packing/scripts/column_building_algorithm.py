@@ -40,7 +40,7 @@ class floor_building:
     
     def parcel_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
-        p = parcel(Point(0,0,0), data.size, data.centerpoint)
+        p = parcel(Point(0,0,0), data.size, data.centerpoint, data.angle)
         self.start_floor_building(p)
 
     def parcel_in_range(self, position, parcel):
@@ -110,7 +110,7 @@ class floor_building:
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
         xyzlist = []     
-        print("floor building algorithm")
+        print("column building algorithm")
 
         r = 0 #Times rotated
         original_parcel = parcel(Point(0,0,0), _parcel.size, _parcel.start_position) #Copy the original parcel as _parcel will have performed many rotations by the end of this function

@@ -37,7 +37,7 @@ class first_fit:
     #Callback function when a new parcel is published to the /parcel_info topic
     def parcel_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
-        p = parcel(Point(0,0,0), data.size, data.centerpoint)
+        p = parcel(Point(0,0,0), data.size, data.centerpoint, data.angle)
         self.start_first_fit(p)
 
     #Returns if the parcel is in the workspace bounds at (x,y) position

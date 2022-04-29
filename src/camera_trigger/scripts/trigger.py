@@ -219,6 +219,7 @@ class depth_dectect:
         print("Parcel angle ", angle)
         print("Parcel centerpoint", centerpoint)
         msg = Parcel()
+        #The bin packing algorithm expects the size to be in cm integers (no decimals)
         msg.size = size
         msg.angle = angle
         msg.centerpoint = centerpoint

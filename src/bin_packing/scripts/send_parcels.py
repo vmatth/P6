@@ -36,16 +36,16 @@ def packing_pub(size):
 def add_parcel(data):
     rospy.loginfo(rospy.get_caller_id() + "Workspace received new parcel %s", data)
     rospy.sleep(1)
-    packing_pub(Point(random.randrange(8,14),random.randrange(8,14), random.randrange(8,14)))
+    packing_pub(Point(random.randrange(3,7),random.randrange(3,7), random.randrange(3,7)))
 
 pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
 def main():
-    random.seed(10)
+    random.seed(1)
     rospy.init_node('send_parcels', anonymous=True)
     sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel)
     pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
     rospy.sleep(2)
-    packing_pub(Point(random.randrange(8,14),random.randrange(8,14), random.randrange(8,14)))
+    packing_pub(Point(random.randrange(3,7),random.randrange(3,7), random.randrange(3,7)))
     #generate_parcels(pub)
     rospy.spin()
 

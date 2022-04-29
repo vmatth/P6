@@ -118,7 +118,7 @@ class mover:
 
         parcel_pose.pose.position.x = parcel.start_pos.x
         parcel_pose.pose.position.y = parcel.start_pos.y 
-        parcel_pose.pose.position.z = (parcel.size.z/100/2) - 0.014#- 0.014 as the table is lower than the robot frame   
+        parcel_pose.pose.position.z = (parcel.actual_size.z/100/2) - 0.014#- 0.014 as the table is lower than the robot frame   
         
         #parcel.start_pos.z - (parcel.size.z/2) - 0.02 #-0.01 for small buffer (or else robot does weird movements)
         parcel_pose.pose.orientation.x = rot_quat[0]
@@ -127,7 +127,7 @@ class mover:
         parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
         parcel_name = "parcel" + str(self.parcels_packed)
 
-        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.size.x/100, parcel.size.y/100, parcel.size.z/100))
+        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.actual_size.x/100, parcel.actual_size.y/100, parcel.actual_size.z/100))
         #self.scene.add_box("temp_parcel", parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z)) #Temp parcel that helps with collision when planning to pick_parcel
 
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
@@ -187,7 +187,7 @@ class mover:
 
         self.update_end_goal(parcel.end_pos)
         self.go_to_pick_ready()
-        self.pick_parcel(picking_pose.pose, parcel.size)
+        self.pick_parcel(picking_pose.pose, parcel.actual_size)
 
 
     def clear_workspace(self):
@@ -201,16 +201,16 @@ class mover:
         grasping_group = 'manipulator'
         touch_links = self.robot.get_link_names(group=grasping_group)
         self.scene.attach_box(self.eef_link, "parcel"+ str(self.parcels_packed), touch_links=touch_links)
-        set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
-        set_io(fun = 1, pin = 0 ,state = 1)
+        #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
+        #set_io(fun = 1, pin = 0 ,state = 1)
 
 
     def detach_parcel(self):
         print("detaching parcel!")
         self.scene.remove_attached_object(self.eef_link, name="parcel" + str(self.parcels_packed))
         self.scene.remove_world_object("parcel")
-        set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
-        set_io(fun = 1, pin = 0 ,state = 0)     
+        #set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
+        #set_io(fun = 1, pin = 0 ,state = 0)     
         
     def go_to_idle(self):
         print("Going to idle")
