@@ -146,7 +146,6 @@ roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_co
 ```
 ```
 roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch
-
 ```
 ```
 roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_moveit_config)/launch/moveit.rviz
