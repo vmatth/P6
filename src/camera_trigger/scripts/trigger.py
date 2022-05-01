@@ -27,6 +27,12 @@ class depth_dectect:
         self.threshold_depth = None #distances higher than this are removed
         self.cam_height = 101.4 #cm
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera)
+        self.focal_length = 1.0663355230063235 * 10**3 #px
+        self.pixel_size = 0.0031 #mm/px
+        self.sensor_width_mm = 5.952 #mm
+        self.sensor_height_mm = 3.348 #mm
+        self.sensor_width_px = 1920 #px
+        self.sensor_height_px = 1080 #px
 
         self.cm_per_pixel = None #pix / cm ### fix so its not static
         self.cm_per_pixel_workspace_x = 0.0952
@@ -165,22 +171,30 @@ class depth_dectect:
                         #distance_to_table = depth_image[200][200]
                         cv2.circle(converted_image, (0,0), 3, (10000, 10000, 10000), -1)
                         #print("testtstst: ", depth_image[centerpoint_x][centerpoint_y])
+                        object_width_pixels = rect[1][1]
+                        object_height_pixels = rect[1][0]
                         print("distance to parcel: ", distance_to_parcel)
-                        print("WIDTH IN PIXELS", rect[1][1])
-                        print("LENGHT IN PIXELS", rect[1][0])
+                        print("WIDTH IN PIXELS", object_width_pixels)
+                        print("LENGTH IN PIXELS", object_height_pixels)
 
-                        #self.cm_per_pixel = 0.00099063 * ((depth_image[centerpoint_y][centerpoint_x]) / 10)
-                        self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
-                        # print("cm per pixel: ", self.cm_per_pixel)
-                        width = (rect[1][1])*self.cm_per_pixel
-                        length = (rect[1][0])*self.cm_per_pixel
+                        #self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
+                        object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
+                        object_height_on_sensor = self.sensor_height_mm * object_height_pixels / self.sensor_height_px
+                        # print("Bw: ", object_width_on_sensor)
+                        # print("Bh: ", object_height_on_sensor)
+                        # print("focal: ", self.focal_length*self.pixel_size)
+                        width = ((distance_to_parcel * 10) * object_width_on_sensor / (self.focal_length*self.pixel_size)) / 10
+                        length = ((distance_to_parcel * 10) * object_height_on_sensor / (self.focal_length*self.pixel_size)) / 10
+
+                        #width = (rect[1][1])*self.cm_per_pixel
+                        #length = (rect[1][0])*self.cm_per_pixel
                         height = self.cam_height - distance_to_parcel
                         angle = rect[2]
                         print("Parcel width [cm]", width)
                         print("Parcel length [cm]", length)
                         print("Parcel height [cm]", height)
                         print("Parcel angle ", angle)
-                        self.cm_per_pixel = 0.000945918 * (self.cam_height) - 0.001137555
+
                         pos_x = centerpoint_x*self.cm_per_pixel
                         pos_y = centerpoint_y*self.cm_per_pixel
                         pos_z = height
