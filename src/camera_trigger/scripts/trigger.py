@@ -177,7 +177,7 @@ class depth_dectect:
                         print("WIDTH IN PIXELS", object_width_pixels)
                         print("LENGTH IN PIXELS", object_height_pixels)
 
-                        #self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
+                        self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
                         object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
                         object_height_on_sensor = self.sensor_height_mm * object_height_pixels / self.sensor_height_px
                         # print("Bw: ", object_width_on_sensor)
@@ -198,16 +198,13 @@ class depth_dectect:
                         pos_x = centerpoint_x*self.cm_per_pixel
                         pos_y = centerpoint_y*self.cm_per_pixel
                         pos_z = height
+                        print("posx: ", pos_x, "posy: ", pos_y, "posz: ", pos_z)
                         #print("Table",distance_to_table)
-                        # #Call parcel_pub function
                         
+                        # #Call parcel_pub function
                         self.parcel_pub(Point(width, length, height), angle, Point(pos_x, pos_y, pos_z))
                         # self.parcel_pub((rect[1][1])/self.cm_per_pixel, (rect[1][0])/self.cm_per_pixel, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
-                        # #Overlay centerpoint and contours to rgb and depth images
-
-
-                    # 3d_in_cm = conversion * 2d_line * depth
-
+                    # #Overlay centerpoint and contours to thresholded images
                     cv2.drawContours(converted_image,[box],0,(255,255,255),2)
                     cv2.circle(converted_image, centerpoint, 3, (10000, 10000, 10000), -1)
                     
@@ -217,11 +214,7 @@ class depth_dectect:
             cv2.imshow("Threshold Image (*16)", threshold_image * 16)
             cv2.imshow("8-bit Threshold Image", converted_image * 16)
             cv2.waitKey(0)
-            #cv2.waitKey(1)
             cv2.destroyAllWindows()
-            # cv2.imshow("Depth Image Threshold (*16)", threshold_image * 16)
-            # cv2.imshow("8-bit Threshold Image", converted_image * 16)
-            # cv2.imshow("Threshold", thresh)
 
         except CvBridgeError as e:
             print(e)
