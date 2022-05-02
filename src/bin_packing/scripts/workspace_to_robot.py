@@ -43,9 +43,9 @@ class converter():
 
         #Data from the packing algorithm is specified from the corner closest to (0,0) and not the center point which the robot uses.
         #The next three lines converts it to a center point. #We convert to m again
-        data.end_pos.x = data.end_pos.x + (data.actual_size.x/100/2)
-        data.end_pos.y = data.end_pos.y + (data.actual_size.y/100/2)
-        data.end_pos.z = data.end_pos.z + (data.actual_size.z/100)
+        data.end_pos.x = data.end_pos.x/100 + (data.actual_size.x/100/2)
+        data.end_pos.y = data.end_pos.y/100 + (data.actual_size.y/100/2)
+        data.end_pos.z = data.end_pos.z/100 + (data.actual_size.z/100)
 
         #Convert roller_cage frame to robot frame
         #robot frame             roller cage frame
