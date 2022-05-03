@@ -137,9 +137,6 @@ Run each command in a new terminal
 ```
 roslaunch bin_packing bin_packing_bring_up.launch 
 ```
-```
-rosrun bin_packing workspace_to_robot.py  
-```
 ### Robot Nodes
 ```
 roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
