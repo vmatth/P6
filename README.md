@@ -137,7 +137,7 @@ Run each command in a new terminal
 ```
 roslaunch bin_packing bin_packing_bring_up.launch 
 ```
-### Robot Nodes
+### Robot Nodes (Physical Robot)
 ```
 roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
 ```
@@ -149,6 +149,19 @@ roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_m
 ```
 ```
 rosrun robot_mover mover.py
+```
+### Robot Nodes (Simulation)
+```
+roslaunch ur_gazebo ur5_bringup.launch limited:=true
+```
+```
+roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch sim:=true limited:=true
+```
+```
+roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_moveit_config)/launch/moveit.rviz
+```
+```
+rosrun robot_mover mover.py _sim:=True
 ```
 ### Camera Nodes
 ```
