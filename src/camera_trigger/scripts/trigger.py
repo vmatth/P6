@@ -195,6 +195,7 @@ class depth_dectect:
                         print("Parcel height [cm]", height)
                         print("Parcel angle ", angle)
 
+                        #todo: lav om til hand eye cal
                         pos_x = centerpoint_x*self.cm_per_pixel
                         pos_y = centerpoint_y*self.cm_per_pixel
                         pos_z = height

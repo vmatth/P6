@@ -88,10 +88,10 @@ class mover:
         workspace_pose.header.frame_id = "base_link"
         workspace_pose.pose.orientation.w = 1.0
         workspace_pose.pose.position.x = 0.0
-        workspace_pose.pose.position.y = 0.6
-        workspace_pose.pose.position.z = -0.2
+        workspace_pose.pose.position.y = 0.5
+        workspace_pose.pose.position.z = -0.19
         workspace_name = "workspace"
-        self.scene.add_box(workspace_name, workspace_pose, size=(0.8, 0.6, 0.08))    
+        self.scene.add_box(workspace_name, workspace_pose, size=(0.8, 0.5, 0.08))    
 
         self.scene.remove_attached_object(self.eef_link, name="parcel")
         self.scene.remove_world_object("parcel")
@@ -127,7 +127,7 @@ class mover:
         parcel_pose.pose.orientation.w = rot_quat[3] #quaternion
         parcel_name = "parcel" + str(self.parcels_packed)
 
-        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.actual_size.x/100, parcel.actual_size.y/100, parcel.actual_size.z/100))
+        #self.scene.add_box(parcel_name, parcel_pose, size=(parcel.actual_size.x/100, parcel.actual_size.y/100, parcel.actual_size.z/100))
         #self.scene.add_box("temp_parcel", parcel_pose, size=(parcel.size.x, parcel.size.y, parcel.size.z)) #Temp parcel that helps with collision when planning to pick_parcel
 
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
@@ -265,14 +265,14 @@ class mover:
 
         if plan==1:
             rospy.sleep(0.5)
-            self.connect_parcel()
-            rospy.sleep(0.5)
-            #self.go_to_pick_ready()          
+            # self.connect_parcel()
+            # rospy.sleep(0.5)
+                        #self.go_to_pick_ready()          
             self.go_to_pack_ready()
             self.place_parcel()
-            self.detach_parcel()
-            self.go_to_pack_ready()
-            self.go_to_idle()
+            # self.detach_parcel()
+            # self.go_to_pack_ready()
+            # self.go_to_idle()
 
         self.group.clear_pose_targets()
 
