@@ -2,16 +2,36 @@
 from lib2to3.pytree import convert
 import rospy
 from bin_packing.msg import Packing_info
+from bin_packing.msg import Workspace #workspace msg
+from geometry_msgs.msg import Point
+import math
 
 #Converts a position given in the workspace frame to a position on the robot frame
-
-
 class converter():
     def __init__(self):
         print("workspace to robot node")
         rospy.init_node('workspace_to_robot_converter', anonymous=True)
         rospy.Subscriber("/workspace/add_parcel", Packing_info, self.convert_frames)   
         self.pub = rospy.Publisher('/robot/pick_place', Packing_info, queue_size=10)
+        rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
+
+
+
+    def workspace_callback(self, data):
+        print("Workspace callbak in converter node")
+        #How much the roller cage frame is displaced from the robot's frame [m]
+
+        #Convert roller_cage frame to robot frame
+        #robot frame             roller cage frame
+        #       ^                       ^
+        #      x|                       | y
+        #    y  |                       |    x
+        # <-----o                       o----->
+        self.cage_x_displacement = data.corner_position.x
+        self.cage_y_displacement = data.corner_position.y
+        self.cage_z_displacement = data.corner_position.z
+
+        print("Workspace corner relative to robot frame: ", Point(self.cage_x_displacement, self.cage_y_displacement, self.cage_z_displacement))
 
     #Converts start_pos and end_pos from the topic /workspace/add_parcel to respect the robot frame.
     def convert_frames(self, data):
@@ -53,13 +73,9 @@ class converter():
         #      x|                       | y
         #    y  |                       |    x
         # <-----o                       o----->
-        #How much the roller cage frame is displaced from the robot's frame [m]
-        cage_x_displacement = -0.4 #-0.36
-        cage_y_displacement = 0.85 #0.94
-        cage_z_displacement = -0.145 #-0.18
-        converted_data.end_pos.x = data.end_pos.y + cage_x_displacement
-        converted_data.end_pos.y = data.end_pos.x * -1 + cage_y_displacement
-        converted_data.end_pos.z = data.end_pos.z + cage_z_displacement
+        converted_data.end_pos.x = data.end_pos.y + self.cage_x_displacement
+        converted_data.end_pos.y = data.end_pos.x * -1 + self.cage_y_displacement
+        converted_data.end_pos.z = data.end_pos.z + self.cage_z_displacement
         
 
         rospy.loginfo(rospy.get_caller_id() + "Converted frames %s", converted_data)

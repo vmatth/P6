@@ -11,10 +11,11 @@ from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 from bin_packing.convertTo2DArray import convertToMultiArray #convert function
 
 class workspace:
-    def __init__ (self, x, y, z):
+    def __init__ (self, x, y, z, center_pos, corner_pos):
         self.parcels = []
         self.workspace_size = Point(x,y,z)
-
+        self.center_position = center_pos
+        self.corner_position = corner_pos
         self.height_map = [[0.0 for i in range(y)] for j in range(x)] 
         self.sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, self.add_parcel)
         self.pub = rospy.Publisher("/workspace/info", Workspace, queue_size=10, latch=True)
@@ -40,6 +41,8 @@ class workspace:
     def update_workspace(self):
         msg = Workspace()
         msg.size = self.workspace_size
+        msg.center_position = self.center_position
+        msg.corner_position = self.corner_position
 
         hm = convertToMultiArray(self.height_map, self.workspace_size.x)
 
@@ -74,7 +77,7 @@ class workspace:
 
     def heightmap_callback(self, data):
         print("Height map updated with size: ", data.size)
-        print("receivin hm", data.height_map)
+        print("receiving hm", data.height_map)
         self.workspace_size = data.size
         self.height_map = convertTo2DArray(data.height_map, False)
         self.update_workspace()
@@ -83,17 +86,20 @@ class workspace:
 def main():
     rospy.init_node('workspace', anonymous=True)
     #rosrun pkg node _x:=2 _y:5 _z:=10
-    x = rospy.get_param("~x", 50)
-    y = rospy.get_param("~y", 80)
-    z = rospy.get_param("~z", 30)
+    x = rospy.get_param("~size_x", 50)
+    y = rospy.get_param("~size_y", 80)
+    z = rospy.get_param("~size_z", 30)
 
-    ws = workspace(x, y, z) #Create a new instance of the workspace class
+    center_pos_x = rospy.get_param("~center_pos_x", 0)
+    center_pos_y = rospy.get_param("~center_pos_y", 0.4)
+    center_pos_z = rospy.get_param("~center_pos_z", -0.1)
+
+    corner_pos_x = rospy.get_param("~corner_pos_x", -0.4)
+    corner_pos_y = rospy.get_param("~corner_pos_y", 0.65)
+    corner_pos_z = rospy.get_param("~corner_pos_z", -0.1)
+
+    ws = workspace(x, y, z, Point(center_pos_x, center_pos_y, center_pos_z), Point(corner_pos_x, corner_pos_y, corner_pos_z)) #Create a new instance of the workspace class
     
-    # rate = rospy.Rate(1) # 10hz
-    # while not rospy.is_shutdown():
-    #     ws.update_workspace()
-    #     rate.sleep()
-
     rospy.spin()
 
 if __name__ == '__main__':

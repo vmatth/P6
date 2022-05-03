@@ -39,16 +39,27 @@ class mover:
         self.eef_link = self.group.get_end_effector_link()
 
         self.parcels_packed = 0
+        self.workspace = None
+
+        rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
 
         rospy.sleep(2)
 
         self.add_environment()
         self.clear_workspace()
         
+        #self.go_to_test_point(Point(-0.31, 0.5, 0.044))
+        
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
+
         print("Sim ", self.sim)
         self.go_to_pose("idle")
         #self.print_info()
+
+
+
+
+
 
     def print_info(self):
         print("end effector: ", self.eef_link)
@@ -58,6 +69,25 @@ class mover:
         print("Robot State: ", self.robot.get_current_state())
         print("Robot Pose: ", self.group.get_current_pose())
         
+
+    #This function is the callback function when receiving workspace info
+    #This function adds the workspace to rviz using its size [cm] and center position [m]
+    #Optional: The last line validates if the robot can move to the workspace corners.
+    def workspace_callback(self, data):
+        print("Receiving update from workspace callback")
+        self.workspace = data
+        workspace_pose = geometry_msgs.msg.PoseStamped()
+        workspace_pose.header.frame_id = "base_link"
+        workspace_pose.pose.orientation.w = 1.0
+        workspace_pose.pose.position.x = data.center_position.x
+        workspace_pose.pose.position.y = data.center_position.y
+        workspace_pose.pose.position.z = data.center_position.z - 0.01 #Minus a small distance as this is defined in center points.
+        workspace_name = "workspace"
+        self.scene.add_box(workspace_name, workspace_pose, size=(data.size.y/100, data.size.x/100, 0.001))    
+        #self.validate_workspace_boundaries()
+
+
+    #Defines the environment in rviz for moveit trajectory calculations
     def add_environment(self):
         print("Adding environment")
         small_table_pose = geometry_msgs.msg.PoseStamped()
@@ -87,19 +117,13 @@ class mover:
         backboard_name = "backboard"
         self.scene.add_box(backboard_name, backboard_pose, size=(0.41, 0.05, 1.06))
 
-        workspace_pose = geometry_msgs.msg.PoseStamped()
-        workspace_pose.header.frame_id = "base_link"
-        workspace_pose.pose.orientation.w = 1.0
-        workspace_pose.pose.position.x = 0.0
-        workspace_pose.pose.position.y = 0.6
-        workspace_pose.pose.position.z = -0.19
-        workspace_name = "workspace"
-        self.scene.add_box(workspace_name, workspace_pose, size=(0.8, 0.5, 0.08))    
-
         self.scene.remove_attached_object(self.eef_link, name="parcel")
         self.scene.remove_world_object("parcel")
 
+    #This function is the callback function when receiving a new packing info from the packing algorithm
+    #Adds the parcel to rviz and calls another function that begins picking the added parcel
     def add_parcel(self, parcel):
+        print("adding parcel at pos", Point(parcel.start_pos.x, parcel.start_pos.y, parcel.actual_size.z/100/2 - 0.014))
         #add parcel to environment !
         parcel_pose = geometry_msgs.msg.PoseStamped()
         parcel_pose.header.frame_id = "base_link"
@@ -114,9 +138,10 @@ class mover:
         self.pick_parcel(parcel)
 
 
-
+    #This function handles all of the pick and place logic for the robotic arm
+    #Starts by calculating the picking position and orientation of the parcel
+    #Thereafter, picks, connects, places, detacthes and returns to idle
     def pick_parcel(self, parcel):
-        print("boi")
         # x: rotation around the vertical axis | y: gripper to look down. | z: unused
         # x: -180 is the default rotation for the gripper
         # x: parcel.angle is the rotation of the parcel detected by the camera
@@ -137,8 +162,7 @@ class mover:
         if plan==1:
             rospy.sleep(0.5)
             self.connect_parcel()
-            rospy.sleep(0.5)
-                        #self.go_to_pick_ready()          
+            rospy.sleep(0.5)         
             self.go_to_pose("pack_ready")
             self.place_parcel()
             self.detach_parcel()
@@ -149,6 +173,8 @@ class mover:
 
         self.parcels_packed = self.parcels_packed + 1
 
+    #Stores the end_goal in the local variable: "self.parcel_goal"
+    #This goal is used for later when the robot needs to place a parcel
     def update_end_goal(self, goal):
 
         pose_goal = geometry_msgs.msg.Pose()
@@ -159,6 +185,7 @@ class mover:
         self.parcel_goal = pose_goal
        # print("Saving parcel place goal: ", self.parcel_goal)
 
+    #Goes to the stored self.parcel_goal position
     def place_parcel(self):
         print("Place parcel")
 
@@ -173,12 +200,13 @@ class mover:
 
         return plan
 
+    #Clears all packed parcels
     def clear_workspace(self):
         print("Clearing workspace")
         for i in range(10):
             self.scene.remove_world_object("parcel" + str(i))
-            self.scene.remove_world_object("temp_parcel")
 
+    #Connects the parcel to the moveit collision system in rviz and on the physical vacuum gripper
     def connect_parcel(self):
         print("connect to parcel!")
         grasping_group = 'manipulator'
@@ -189,6 +217,7 @@ class mover:
             set_io(fun = 1, pin = 0 ,state = 1)
 
 
+    #Detaches the parcel from the moveit collision system in rviz and the physical vacuum gripper
     def detach_parcel(self):
         print("detaching parcel!")
         self.scene.remove_attached_object(self.eef_link, name="parcel" + str(self.parcels_packed))
@@ -197,6 +226,7 @@ class mover:
             set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
             set_io(fun = 1, pin = 0 ,state = 0)     
 
+    #This function moves the robot to "pose" which is a string containing the name of the pose defined in the moveit configuration
     def go_to_pose(self, pose):
         print("Going to ", pose)
         self.group.set_named_target(pose)
@@ -207,7 +237,30 @@ class mover:
 
         return plan
 
-    def euler_to_orientation(self, x, y, z): #Convert x y z degrees to a geometry_msg.Pose.orientation (a quaternion)
+    #This function moves the robot to each corner in the workspace
+    #The purpose is to check if the robot has enough range for the given workspace
+    def validate_workspace_boundaries(self):
+        print("Validating workspace boundaries")
+        p = geometry_msgs.msg.Pose()
+        p.position = Point(self.workspace.corner_position.x, self.workspace.corner_position.y, 0) #- 0.009 as the table is lower than the robot frame 
+        p.orientation = self.euler_to_orientation(-180, 0, 0)
+        print("First val position: ", p.position)    
+        self.group.set_pose_target(p)
+        plan = self.group.go(wait=True)
+        self.group.stop()
+
+    def go_to_test_point(self, point):
+        print("Going to test point ", point)
+        p = geometry_msgs.msg.Pose()
+        p.position = point
+        p.orientation = self.euler_to_orientation(-180, 0, 0)
+        print("First val position: ", p.position)    
+        self.group.set_pose_target(p)
+        plan = self.group.go(wait=True)
+        self.group.stop()       
+
+    #Convert x y z degrees to a geometry_msg.Pose.orientation (a quaternion)
+    def euler_to_orientation(self, x, y, z): 
         rot = Rotation.from_euler('xyz', [x, y, z], degrees=True)
         rot_quat = rot.as_quat()
 
