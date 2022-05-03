@@ -55,7 +55,7 @@ class converter():
         # <-----o                       o----->
         #How much the roller cage frame is displaced from the robot's frame [m]
         cage_x_displacement = -0.4 #-0.36
-        cage_y_displacement = 0.75 #0.94
+        cage_y_displacement = 0.85 #0.94
         cage_z_displacement = -0.145 #-0.18
         converted_data.end_pos.x = data.end_pos.y + cage_x_displacement
         converted_data.end_pos.y = data.end_pos.x * -1 + cage_y_displacement

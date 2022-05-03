@@ -94,7 +94,7 @@ class depth_dectect:
         #print("new pixel array: ", new_lowest_pix)
         # find the 4 lowest pixel depths
         lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)]  
-        #print("depths: ", lowest_pixel_depth)
+        print("depths: ", lowest_pixel_depth)
  
         # calculate average of the 4 lowest pixel depths
         self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+30)/10  
