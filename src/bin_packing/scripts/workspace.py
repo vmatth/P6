@@ -83,9 +83,9 @@ class workspace:
 def main():
     rospy.init_node('workspace', anonymous=True)
     #rosrun pkg node _x:=2 _y:5 _z:=10
-    x = rospy.get_param("~x", 40)
-    y = rospy.get_param("~y", 40)
-    z = rospy.get_param("~z", 40)
+    x = rospy.get_param("~x", 50)
+    y = rospy.get_param("~y", 80)
+    z = rospy.get_param("~z", 30)
 
     ws = workspace(x, y, z) #Create a new instance of the workspace class
     
