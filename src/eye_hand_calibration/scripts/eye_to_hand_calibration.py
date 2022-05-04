@@ -29,9 +29,11 @@ from numpy.linalg import inv
 class hand_eye:
 
     def __init__(self):
-        # self.bridge = CvBridge()
+        self.bridge = CvBridge()
         # moveit_commander.roscpp_initialize(sys.argv)
-        # rospy.init_node('robot_mover', anonymous=True)
+        rospy.init_node('robot_mover', anonymous=True)
+
+        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color", Image, self.callback)
 
         # self.robot = moveit_commander.RobotCommander()
         # self.scene = moveit_commander.PlanningSceneInterface()
@@ -52,8 +54,8 @@ class hand_eye:
 
         #self.calculate_XYZ(0, 0)
 
-        while True:
-            self.take_picture()
+            # while True:
+            #     self.take_picture()
             #self.calibrate()
 
 
@@ -120,32 +122,6 @@ class hand_eye:
         return rot_matrix
 
 
-
-    # def euler_from_quaternion(self, x, y, z, w):
-    #     """
-    #     Convert a quaternion into euler angles (roll, pitch, yaw)
-    #     roll is rotation around x in radians (counterclockwise)
-    #     pitch is rotation around y in radians (counterclockwise)
-    #     yaw is rotation around z in radians (counterclockwise)
-    #     """
-    #     t0 = +2.0 * (w * x + y * z)
-    #     t1 = +1.0 - 2.0 * (x * x + y * y)
-    #     roll_x = math.atan2(t0, t1)
-    
-    #     t2 = +2.0 * (w * y - z * x)
-    #     t2 = +1.0 if t2 > +1.0 else t2
-    #     t2 = -1.0 if t2 < -1.0 else t2
-    #     pitch_y = math.asin(t2)
-    
-    #     t3 = +2.0 * (w * z + x * y)
-    #     t4 = +1.0 - 2.0 * (y * y + z * z)
-    #     yaw_z = math.atan2(t3, t4)
-    
-    #     return roll_x, pitch_y, yaw_z # in radians
-
-
-
-
     def calculate_XYZ(self, u, v, z):
         s = 1
         A = np.matrix([[1.0663355230063235*10**3, 0., 9.4913144897241432*10**2], [0, 1.0676521964588569*10**3, 5.3505238717783232*10**2], [0., 0., 1.]])
@@ -192,26 +168,30 @@ class hand_eye:
 
 
 
-    def take_picture(self):
-        image_data = rospy.wait_for_message("/kinect2/hd/image_depth_rect", Image, timeout=None)
-        image = self.bridge.imgmsg_to_cv2(image_data, "passthrough")
+    def callback(self, image_data):
+        print("take pic!")
+        print("bruh")
+        try:
+            image = self.bridge.imgmsg_to_cv2(image_data, "passthrough")
 
-        x = 500
-        y = 500
+            #cx = 890
+            #cy = 535
 
-        #Draw circle at xy
-        cv2.circle(image, (x,y), 3, (10000, 10000, 10000), -1)
+            x = 890
+            y = 535
+            #Draw circle at xy
+            cv2.circle(image, (x,y), 3, (255, 0, 0), -1)
 
+            #Get distance (z) to xy value 
+            z = 1
 
-        #Get distance (z) to xy value 
-        z = image[y][x]
+            self.calculate_XYZ(x,y,z)
+            cv2.waitKey(3)
+            cv2.imshow("ja2", image)
+            #cv2.waitKey(0)
 
-        self.calculate_XYZ(x,y,z)
-        
-
-        cv2.imshow("ja2", image)
-        cv2.waitKey(0)
-
+        except CvBridgeError as e:
+            print(e)
 
 
     def calibrate_pictures(self):
@@ -345,7 +325,7 @@ def main():
     #lav en instance af klassen
     he = hand_eye()
 
-    #rospy.spin()    
+    rospy.spin()    
 
 
 if __name__ == '__main__':

@@ -12,6 +12,7 @@ import imutils
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 from geometry_msgs.msg import Point
+from numpy.linalg import inv
 
 
 ## When triggered
@@ -117,6 +118,7 @@ class depth_dectect:
     def thresholding(self, depth_data):
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
+            uncropped_image = depth_image.copy()
             depth_image = depth_image[242:785, 638:1050]
             height = depth_image.shape[0]
             width = depth_image.shape[1]
@@ -195,9 +197,12 @@ class depth_dectect:
                         print("Parcel height [cm]", height)
                         print("Parcel angle ", angle)
 
+                        XYZ = self.calculate_XYZ(centerpoint_x + 638, centerpoint_y + 242, 1)
+                        print("XYZ", XYZ[0])
+
                         #todo: lav om til hand eye cal
-                        pos_x = centerpoint_x*self.cm_per_pixel
-                        pos_y = centerpoint_y*self.cm_per_pixel
+                        pos_x = XYZ[0][0] * 100
+                        pos_y = XYZ[1][0] * 100
                         pos_z = height
                         print("posx: ", pos_x, "posy: ", pos_y, "posz: ", pos_z)
                         #print("Table",distance_to_table)
@@ -208,9 +213,11 @@ class depth_dectect:
                     # #Overlay centerpoint and contours to thresholded images
                     cv2.drawContours(converted_image,[box],0,(255,255,255),2)
                     cv2.circle(converted_image, centerpoint, 3, (10000, 10000, 10000), -1)
-                    
 
+            #cv2.circle(uncropped_image, (890, 535), 3, (10000, 10000, 10000), -1)
+            #cv2.circle(converted_image, (890 - 638, 535 - 242), 3, (10000, 10000, 1000), -1)
 
+            #cv2.imshow("Uncropped Image (*16)", uncropped_image * 16)
             cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
             cv2.imshow("Threshold Image (*16)", threshold_image * 16)
             cv2.imshow("8-bit Threshold Image", converted_image * 16)
@@ -234,6 +241,52 @@ class depth_dectect:
 
         
         self.pub.publish(msg)
+
+    def calculate_XYZ(self, u, v, z):
+        s = 1
+        A = np.matrix([[1.0663355230063235*10**3, 0., 9.4913144897241432*10**2], [0, 1.0676521964588569*10**3, 5.3505238717783232*10**2], [0., 0., 1.]])
+        R = np.matrix([[9.9988107827826278e-01, -5.9309422117523802e-04,-1.5410306302711205e-02],[6.1924030152182927e-04, 9.9999837692924043e-01, 1.6919457242115465e-03], [1.5409277807462079e-02, -1.7012871978343688e-03, 9.9987982266836595e-01]])
+        t = np.array([[-4.0874634519709227e-02, 1.3982841913969224e-04, 2.7999300285299357e-03]])
+
+        print("u,v,z", u, v, z)
+        print("A: ", A)
+        print("R: ", R)
+        print("t: ", t)
+
+        uv1 = np.array([[u,v,z]])
+
+        #Transpose uv1
+        uv1 = uv1.T
+        print("uv1 Transpose: ", uv1)
+
+        #Times by scaling factor
+        s_uv1 = s*uv1
+        print("s*uv1", s_uv1)
+
+        #Invert A
+        A_inv = inv(A)
+        print("A^-1: ", A_inv)
+
+        #A^-1 * s_uv1
+        xyz_c = A_inv.dot(s_uv1)
+        print("A^-1 * s_uv1: ", xyz_c)
+
+        #Transpose t
+        t = t.T
+        print("T Transpose: ", t)
+
+        #Substract t
+        xyz_c = xyz_c - t
+        print("Subtracted by T: ", xyz_c)
+
+        #Invert R
+        R_inv = inv(R)
+        print("R^-1: ", R_inv)
+
+        XYZ = R_inv.dot(xyz_c)
+        print("Final XYZ", XYZ)
+
+        return XYZ
 
 if __name__ == '__main__':
     dd = depth_dectect()  
