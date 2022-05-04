@@ -16,6 +16,8 @@ import math
 from moveit_commander.conversions import pose_to_list
 from geometry_msgs.msg import Pose  
 from scipy.spatial.transform import Rotation
+import glob
+from numpy.linalg import inv
 
 # class eye_hand_calibration:
 
@@ -27,43 +29,52 @@ from scipy.spatial.transform import Rotation
 class hand_eye:
 
     def __init__(self):
-        self.bridge = CvBridge()
-        moveit_commander.roscpp_initialize(sys.argv)
-        rospy.init_node('robot_mover', anonymous=True)
+        # self.bridge = CvBridge()
+        # moveit_commander.roscpp_initialize(sys.argv)
+        # rospy.init_node('robot_mover', anonymous=True)
 
-        self.robot = moveit_commander.RobotCommander()
-        self.scene = moveit_commander.PlanningSceneInterface()
+        # self.robot = moveit_commander.RobotCommander()
+        # self.scene = moveit_commander.PlanningSceneInterface()
 
-        self.group_name = "manipulator"
-        self.group = moveit_commander.MoveGroupCommander(self.group_name)
+        # self.group_name = "manipulator"
+        # self.group = moveit_commander.MoveGroupCommander(self.group_name)
 
-        self.planning_frame = self.group.get_planning_frame()
+        # self.planning_frame = self.group.get_planning_frame()
 
-        self.eef_link = self.group.get_end_effector_link()
+        # self.eef_link = self.group.get_end_effector_link()
 
-        self.calibrate()
+        # self.nr = 0
 
-        self.pattern_size = (5,7)
-        self.corners = None
+        # self.pattern_size = (5,7)
+        # self.corners = None
+
+        # #self.calibrate_pictures()
+
+        #self.calculate_XYZ(0, 0)
+
+        while True:
+            self.take_picture()
+            #self.calibrate()
+
 
     def calibrate(self):
         print("hi jepp")
-        print("Robot Pose: ", self.group.get_current_pose())
+        # print("Robot Pose: ", self.group.get_current_pose())
 
-        t_gripper2base = self.group.get_current_pose().pose.position
+        # t_gripper2base = self.group.get_current_pose().pose.position
 
-        print("T_Gripper2Base", t_gripper2base)
+        # print("T_Gripper2Base", t_gripper2base)
 
-        r_gripper2base_quat = self.group.get_current_pose().pose.orientation
+        # r_gripper2base_quat = self.group.get_current_pose().pose.orientation
 
-        print("R_Gripper2Base Quat", r_gripper2base_quat)
+        # print("R_Gripper2Base Quat", r_gripper2base_quat)
 
-        #r_gripper2base_eul = self.euler_from_quaternion(r_gripper2base_quat.x, r_gripper2base_quat.y, r_gripper2base_quat.z, r_gripper2base_quat.w)
+        # #r_gripper2base_eul = self.euler_from_quaternion(r_gripper2base_quat.x, r_gripper2base_quat.y, r_gripper2base_quat.z, r_gripper2base_quat.w)
     
-        #print("R_Gripper2Base Euler", r_gripper2base_eul)
+        # #print("R_Gripper2Base Euler", r_gripper2base_eul)
 
-        r_gripper2base = self.quaternion_rotation_matrix(r_gripper2base_quat)
-        print("r gripper 2 base: ", r_gripper2base)
+        # r_gripper2base = self.quaternion_rotation_matrix(r_gripper2base_quat)
+        # print("r gripper 2 base: ", r_gripper2base)
 
         image_data = rospy.wait_for_message("/kinect2/hd/image_color", Image, timeout=None)
         self.find_checkerboard_corners(image_data)
@@ -110,39 +121,197 @@ class hand_eye:
 
 
 
-    def euler_from_quaternion(self, x, y, z, w):
-        """
-        Convert a quaternion into euler angles (roll, pitch, yaw)
-        roll is rotation around x in radians (counterclockwise)
-        pitch is rotation around y in radians (counterclockwise)
-        yaw is rotation around z in radians (counterclockwise)
-        """
-        t0 = +2.0 * (w * x + y * z)
-        t1 = +1.0 - 2.0 * (x * x + y * y)
-        roll_x = math.atan2(t0, t1)
+    # def euler_from_quaternion(self, x, y, z, w):
+    #     """
+    #     Convert a quaternion into euler angles (roll, pitch, yaw)
+    #     roll is rotation around x in radians (counterclockwise)
+    #     pitch is rotation around y in radians (counterclockwise)
+    #     yaw is rotation around z in radians (counterclockwise)
+    #     """
+    #     t0 = +2.0 * (w * x + y * z)
+    #     t1 = +1.0 - 2.0 * (x * x + y * y)
+    #     roll_x = math.atan2(t0, t1)
     
-        t2 = +2.0 * (w * y - z * x)
-        t2 = +1.0 if t2 > +1.0 else t2
-        t2 = -1.0 if t2 < -1.0 else t2
-        pitch_y = math.asin(t2)
+    #     t2 = +2.0 * (w * y - z * x)
+    #     t2 = +1.0 if t2 > +1.0 else t2
+    #     t2 = -1.0 if t2 < -1.0 else t2
+    #     pitch_y = math.asin(t2)
     
-        t3 = +2.0 * (w * z + x * y)
-        t4 = +1.0 - 2.0 * (y * y + z * z)
-        yaw_z = math.atan2(t3, t4)
+    #     t3 = +2.0 * (w * z + x * y)
+    #     t4 = +1.0 - 2.0 * (y * y + z * z)
+    #     yaw_z = math.atan2(t3, t4)
     
-        return roll_x, pitch_y, yaw_z # in radians
+    #     return roll_x, pitch_y, yaw_z # in radians
+
+
+
+
+    def calculate_XYZ(self, u, v, z):
+        s = 1
+        A = np.matrix([[1.0663355230063235*10**3, 0., 9.4913144897241432*10**2], [0, 1.0676521964588569*10**3, 5.3505238717783232*10**2], [0., 0., 1.]])
+        R = np.matrix([[9.9988107827826278e-01, -5.9309422117523802e-04,-1.5410306302711205e-02],[6.1924030152182927e-04, 9.9999837692924043e-01, 1.6919457242115465e-03], [1.5409277807462079e-02, -1.7012871978343688e-03, 9.9987982266836595e-01]])
+        t = np.array([[-4.0874634519709227e-02, 1.3982841913969224e-04, 2.7999300285299357e-03]])
+
+        print("u,v,z", u, v, z)
+        print("A: ", A)
+        print("R: ", R)
+        print("t: ", t)
+
+        uv1 = np.array([[u,v,z]])
+
+        #Transpose uv1
+        uv1 = uv1.T
+        print("uv1 Transpose: ", uv1)
+
+        #Times by scaling factor
+        s_uv1 = s*uv1
+        print("s*uv1", s_uv1)
+
+        #Invert A
+        A_inv = inv(A)
+        print("A^-1: ", A_inv)
+
+        #A^-1 * s_uv1
+        xyz_c = A_inv.dot(s_uv1)
+        print("A^-1 * s_uv1: ", xyz_c)
+
+        #Transpose t
+        t = t.T
+        print("T Transpose: ", t)
+
+        #Substract t
+        xyz_c = xyz_c - t
+        print("Subtracted by T: ", xyz_c)
+
+        #Invert R
+        R_inv = inv(R)
+        print("R^-1: ", R_inv)
+
+        XYZ = R_inv.dot(xyz_c)
+        print("Final XYZ", XYZ)
+
+
+
+    def take_picture(self):
+        image_data = rospy.wait_for_message("/kinect2/hd/image_depth_rect", Image, timeout=None)
+        image = self.bridge.imgmsg_to_cv2(image_data, "passthrough")
+
+        x = 500
+        y = 500
+
+        #Draw circle at xy
+        cv2.circle(image, (x,y), 3, (10000, 10000, 10000), -1)
+
+
+        #Get distance (z) to xy value 
+        z = image[y][x]
+
+        self.calculate_XYZ(x,y,z)
+        
+
+        cv2.imshow("ja2", image)
+        cv2.waitKey(0)
+
+
+
+    def calibrate_pictures(self):
+
+        w = 5
+        h = 7
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+
+        objp = np.zeros((w * h, 3), np.float32)
+        objp[:, :2] = np.mgrid[0:w, 0:h].T.reshape(-1, 2)
+        # Arrays to store object points and image points from all the images.
+        objpoints = [] # 3d point in real world space
+        imgpoints = [] # 2d points in image plane.
+
+      
+        print("Calibrating pictures :]")
+        images = glob.glob('*')
+        for fname in images:
+            img = cv2.imread(fname)
+            try:
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            except:
+                gray = img
+
+            ret, corners = cv2.findChessboardCorners(gray, (w,h), None)
+            if ret == True:
+                objpoints.append(objp)
+                corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
+                imgpoints.append(corners)
+                # Draw and display the corners
+                cv2.drawChessboardCorners(gray, (w,h), corners2, ret)
+                #cv2.imshow("ja2", gray)
+                #cv2.waitKey(0)
+
+                chess_board_len = 3 #mm??
+
+                object_points=np.zeros((3,w*h),dtype=np.float64)
+                flag=0
+                for i in range(h):
+                    for j in range(w):
+                        object_points[:2,flag]=np.array([(11-j-1)*chess_board_len,(8-i-1)*chess_board_len])
+                        flag+=1
+
+                ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+                corner_points=np.zeros((2,corners.shape[0]),dtype=np.float64)
+                for i in range(corners.shape[0]):
+                    corner_points[:,i]=corners[i,0,:]
+
+                #make into np array
+                K = np.matrix([[1.0663355230063235*10**3, 0., 9.4913144897241432*10**2], [0, 1.0676521964588569*10**3, 5.3505238717783232*10**2], [0., 0., 1.]])
+                print("Matrix: ", K)
+
+                # K = [ [1.0663355230063235e+03, 0., 9.4913144897241432e+020],
+                #     [0, 1.0676521964588569e+03, 5.3505238717783232e+02], 
+                #     [0., 0., 1.]]
+
+                rvec, tvec = cv2.solvePnP(object_points, corner_points, K, distCoeffs = dist)
+
 
 
     def find_checkerboard_corners(self, data):
         try:
+            #Define values for the checkerboard corners
+            w = 5
+            h = 7
+            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+            # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+            objp = np.zeros((w*h,3), np.float32)
+            objp[:,:2] = np.mgrid[0:w,0:h].T.reshape(-1,2)
+
+            # Arrays to store object points and image points from all the images.
+            objpoints = [] # 3d point in real world space
+            imgpoints = [] # 2d points in image plane.
+
             image = self.bridge.imgmsg_to_cv2(data, "passthrough")
-            cv2.imshow("ja2", image)
-            cv2.waitKey(0)
-            ret, corners = cv2.findChessboardCorners(image, (5,7), None)
-            print("Corners ", corners)
-            cv2.drawChessboardCorners(image, (5,7), corners, ret)
-            cv2.imshow("ja2", image)
-            cv2.waitKey(0)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+            file_name = "image" + str(self.nr) + ".jpg"
+            cv2.imwrite(file_name, image)
+            print("saving image!!!")
+            self.nr = self.nr + 1
+
+            ret, corners = cv2.findChessboardCorners(gray, (w,h), None)
+
+            if ret == True:
+                objpoints.append(objp)
+                corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
+                imgpoints.append(corners)
+                # Draw and display the corners
+                cv2.drawChessboardCorners(gray, (w,h), corners2, ret)
+                cv2.imshow("ja2", gray)
+                cv2.waitKey(0)
+
+                ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+
+
         except CvBridgeError as e:
             print(e)
 
