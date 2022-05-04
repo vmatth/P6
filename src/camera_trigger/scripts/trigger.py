@@ -48,15 +48,15 @@ class depth_dectect:
             print('special key pressed: {0}'.format(key))
             #print("key: ", key)
             #if key er enter
-            if key == key.enter:
+            if key == key.ctrl_r:
                 self.depth_data = rospy.wait_for_message("/kinect2/hd/image_depth_rect", Image, timeout=None)
                 self.thresholding(self.depth_data)
                 #print("saved data: ", self.depth_data)
                 #publish here to another topic
-            elif key == key.space:
-                self.depth_data = rospy.wait_for_message("/kinect2/hd/image_depth_rect", Image, timeout=None)
-                self.thresholding(self.depth_data)
-                #print("saved data: ", self.depth_data)
+            # elif key == key.space:
+            #     self.depth_data = rospy.wait_for_message("/kinect2/hd/image_depth_rect", Image, timeout=None)
+            #     self.thresholding(self.depth_data)
+            #     #print("saved data: ", self.depth_data)
         except AttributeError:
             print("error :((((")
 

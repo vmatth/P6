@@ -56,11 +56,6 @@ class mover:
         self.go_to_pose("idle")
         #self.print_info()
 
-
-
-
-
-
     def print_info(self):
         print("end effector: ", self.eef_link)
         
@@ -84,7 +79,7 @@ class mover:
         workspace_pose.pose.position.z = data.center_position.z - 0.01 #Minus a small distance as this is defined in center points.
         workspace_name = "workspace"
         self.scene.add_box(workspace_name, workspace_pose, size=(data.size.y/100, data.size.x/100, 0.001))    
-        #self.validate_workspace_boundaries()
+        #self.validate_workspace_boundaries() #todo only do once 
 
 
     #Defines the environment in rviz for moveit trajectory calculations
@@ -119,6 +114,10 @@ class mover:
 
         self.scene.remove_attached_object(self.eef_link, name="parcel")
         self.scene.remove_world_object("parcel")
+
+    def add_walls(self):
+        print("Adding walls")
+
 
     #This function is the callback function when receiving a new packing info from the packing algorithm
     #Adds the parcel to rviz and calls another function that begins picking the added parcel
