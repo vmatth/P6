@@ -12,10 +12,11 @@ from read_camera.msg import Parcel
 from bin_packing.parcel import parcel
 from geometry_msgs.msg import Point
 from bin_packing.msg import Workspace #workspace msg
+import math
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 
-class floor_building:
+class column_building:
     def __init__(self):
         print("init column building")
 
@@ -28,8 +29,7 @@ class floor_building:
         
         rospy.Subscriber("/vision/parcel", Parcel, self.parcel_callback)
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
-    
-    
+
     def workspace_callback(self, data):
         print("/workspace/info callback")
         #rospy.loginfo(rospy.get_caller_id() + "Receiving data from /workspace/info %s", data)
@@ -41,12 +41,12 @@ class floor_building:
     def parcel_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
         p = parcel(Point(0,0,0), data.size, data.centerpoint, data.angle)
-        self.start_floor_building(p)
+        self.start_column_building(p)
 
     def parcel_in_range(self, position, parcel):
-            size_x = parcel.size.x
-            size_y = parcel.size.y
-            size_z = parcel.size.z
+            size_x = parcel.rounded_size.x
+            size_y = parcel.rounded_size.y
+            size_z = parcel.rounded_size.z
             pos_x = position.x
             pos_y = position.y
             pos_z = position.z
@@ -68,8 +68,8 @@ class floor_building:
             return True
 
     def bottom_supported(self, position, parcel):
-            size_x = int(parcel.size.x)
-            size_y = int(parcel.size.y)
+            size_x = int(parcel.rounded_size.x)
+            size_y = int(parcel.rounded_size.y)
             pos_x = int(position.x)
             pos_y = int(position.y)
 
@@ -106,15 +106,16 @@ class floor_building:
                 return False
             
 
-    def floor_building_algorithm(self, _parcel):
+    def column_building_algorithm(self, _parcel):
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
         xyzlist = []     
         print("column building algorithm")
 
+
         r = 0 #Times rotated
-        original_parcel = parcel(Point(0,0,0), _parcel.size, _parcel.start_position) #Copy the original parcel as _parcel will have performed many rotations by the end of this function
-        h = _parcel.size.z
+        original_parcel = parcel(Point(0,0,0), _parcel.actual_size, _parcel.start_position, _parcel.angle) #Copy the original parcel as _parcel will have performed many rotations by the end of this function
+        h = _parcel.rounded_size.z
 
         for y in range(ws_y):
             for x in range(ws_x):
@@ -133,7 +134,7 @@ class floor_building:
 
         _parcel.rotate_parcel('z')
         r = r + 1
-        h = _parcel.size.z
+        h = _parcel.rounded_size.z
         for y in range(ws_y):
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
@@ -150,7 +151,7 @@ class floor_building:
 
         _parcel.rotate_parcel('y')
         r = r + 1
-        h = _parcel.size.z
+        h = _parcel.rounded_size.z
         for y in range(ws_y):
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
@@ -166,7 +167,7 @@ class floor_building:
                         #print("list: ", xyzlist)
         _parcel.rotate_parcel('z')
         r = r + 1
-        h = _parcel.size.z
+        h = _parcel.rounded_size.z
         for y in range(ws_y):
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
@@ -182,7 +183,7 @@ class floor_building:
                         #print("list: ", xyzlist)
         _parcel.rotate_parcel('y')
         r = r + 1
-        h = _parcel.size.z
+        h = _parcel.rounded_size.z
         for y in range(ws_y):
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
@@ -198,7 +199,7 @@ class floor_building:
                         #print("list: ", xyzlist)
         _parcel.rotate_parcel('z')
         r = r + 1
-        h = _parcel.size.z
+        h = _parcel.rounded_size.z
         for y in range(ws_y):
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
@@ -224,7 +225,7 @@ class floor_building:
                 #print("temppp, ", temp)
                 #print("xyzlist", xyzlist[i])
                 #print("temp[4]", temp[4], "xyzlist[4]", xyzlist[i][4]) 
-                if xyzlist[i][2] > temp[2]: 
+                if xyzlist[i][2] > temp[2]:
                     temp = xyzlist[i]
                     #print("new temp ", temp)
                 elif xyzlist[i][4] > temp[4] and xyzlist[i][2] >= temp[2]:
@@ -279,25 +280,27 @@ class floor_building:
                 parcel_rotation = 90
 
                 
-            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, Point(original_parcel.size.x, original_parcel.size.y, original_parcel.size.z), picking_side, parcel_rotation)
+            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, original_parcel.actual_size, original_parcel.rounded_size, picking_side, parcel_rotation, original_parcel.angle)
 
         elif len(xyzlist) <= 0:
             return False
 
 
-    def start_floor_building(self, parcel):
-        if self.floor_building_algorithm(parcel) == False:
+    def start_column_building(self, parcel):
+        if self.column_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
             rospy.sleep(999)
         
-    def packing_pub(self, end_pos, start_pos, size, picking_side, parcel_rotation):
+    def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle):
         msg = Packing_info()
 
-        msg.size = size
+        msg.actual_size = actual_size
+        msg.rounded_size = rounded_size
         msg.end_pos = end_pos
         msg.start_pos = start_pos 
         msg.picking_side = picking_side
         msg.parcel_rotation = parcel_rotation
+        msg.angle = angle
 
 
         print(msg)
@@ -309,7 +312,7 @@ class floor_building:
 
 def main():
     rospy.init_node('column_building_algorithm', anonymous=True)
-    fb =  floor_building() #Create a new instance of the first fit class
+    cb =  column_building() #Create a new instance of the first fit class
     #spin
     rospy.spin()
 

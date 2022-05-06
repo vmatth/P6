@@ -26,9 +26,10 @@ class depth_dectect:
         self.bridge = CvBridge()
         self.depth_data = None
         self.threshold_depth = None #distances higher than this are removed
-        self.cam_height = 101.4 #cm
+        self.cam_height = 1014 #mm
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera)
-        self.focal_length = 1.0663355230063235 * 10**3 #px
+        self.focal_length_x = 1.0663355230063235 * 10**3 #px
+        self.focal_length_y = 1.0676521964588569 * 10**3 #px
         self.pixel_size = 0.0031 #mm/px
         self.sensor_width_mm = 5.952 #mm
         self.sensor_length_mm = 3.348 #mm
@@ -94,11 +95,11 @@ class depth_dectect:
         new_lowest_pix = list[(len(list))-4:len(list)]
         #print("new pixel array: ", new_lowest_pix)
         # find the 4 lowest pixel depths
-        lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)]  
+        lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)-1]  
         print("depths: ", lowest_pixel_depth)
  
         # calculate average of the 4 lowest pixel depths
-        self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+30)/10  
+        self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+40)/10  
         print("thresholding depth: ", self.threshold_depth)
         #cv2.circle(depth_image, lowest_pix, 3, (10000, 10000, 10000), -1)
 
@@ -141,78 +142,85 @@ class depth_dectect:
             converted_image = (threshold_image/256).astype('uint8')
 
             _, contours, _ = cv2.findContours(converted_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            print("contours :", len(contours))
-            
 
-
+            counter = 0
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                
                 if area > 500:
-                    print("area: ", area)
+                    counter = counter + 1
+            
 
-                    #Create a rotated box around the parcel https://theailearner.com/tag/cv2-minarearect/
-                    rect = cv2.minAreaRect(cnt)
-                    box = cv2.boxPoints(rect)
-                    box = np.int0(box)
-                    #Find centerpoint using quik maffs
-                    centerpoint_x = ((box[3][0] - box[1][0])/2) + box[1][0]
-                    centerpoint_y = ((box[0][1] - box[2][1])/2) + box[2][1]
-                    centerpoint = (centerpoint_x, centerpoint_y)
-                    center = rect[0]
+            print("Contours with area over 500: ", counter)
 
-                    print("centerpont: ", centerpoint)
-                    print("dim ,", depth_image.shape)
+            if(counter == 1):
+                for cnt in contours:
+                    area = cv2.contourArea(cnt)
+                    
+                    if area > 500:
+                        print("area: ", area)
 
-                    #Get pixel value at centerpoint
-                    if(centerpoint_x >= depth_image.shape[1] or centerpoint_y >= depth_image.shape[0]): #Check if all 4 corners are available, or else it returns error
-                        print("Centerpoint cannot be found in depth image")
-                    else:
-                        #Calculate dimensions & angle
-                        distance_to_parcel = (depth_image[centerpoint_y][centerpoint_x]) / 10 #Calculate distance in [cm] 
-                        #distance_to_table = depth_image[200][200]
-                        cv2.circle(converted_image, (0,0), 3, (10000, 10000, 10000), -1)
-                        #print("testtstst: ", depth_image[centerpoint_x][centerpoint_y])
-                        object_width_pixels = rect[1][1]
-                        object_length_pixels = rect[1][0]
-                        print("distance to parcel: ", distance_to_parcel)
-                        print("WIDTH IN PIXELS", object_width_pixels)
-                        print("LENGTH IN PIXELS", object_length_pixels)
+                        #Create a rotated box around the parcel https://theailearner.com/tag/cv2-minarearect/
+                        rect = cv2.minAreaRect(cnt)
+                        box = cv2.boxPoints(rect)
+                        box = np.int0(box)
+                        #Find centerpoint using quik maffs
+                        centerpoint_x = ((box[3][0] - box[1][0])/2) + box[1][0]
+                        centerpoint_y = ((box[0][1] - box[2][1])/2) + box[2][1]
+                        centerpoint = (centerpoint_x, centerpoint_y)
+                        center = rect[0]
 
-                        self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
-                        object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
-                        object_length_on_sensor = self.sensor_length_mm * object_length_pixels / self.sensor_length_px
-                        # print("Bw: ", object_width_on_sensor)
-                        # print("Bh: ", object_height_on_sensor)
-                        # print("focal: ", self.focal_length*self.pixel_size)
-                        width = ((distance_to_parcel * 10) * object_width_on_sensor / (self.focal_length*self.pixel_size)) / 10
-                        length = ((distance_to_parcel * 10) * object_length_on_sensor / (self.focal_length*self.pixel_size)) / 10
+                        print("centerpont: ", centerpoint)
+                        print("dim ,", depth_image.shape)
 
-                        #width = (rect[1][1])*self.cm_per_pixel
-                        #length = (rect[1][0])*self.cm_per_pixel
-                        height = self.cam_height - distance_to_parcel
-                        angle = rect[2]
-                        print("Parcel width [cm]", width)
-                        print("Parcel length [cm]", length)
-                        print("Parcel height [cm]", height)
-                        print("Parcel angle ", angle)
+                        #Get pixel value at centerpoint
+                        if(centerpoint_x >= depth_image.shape[1] or centerpoint_y >= depth_image.shape[0]): #Check if all 4 corners are available, or else it returns error
+                            print("Centerpoint cannot be found in depth image")
+                        else:
+                            #Calculate dimensions & angle
+                            distance_to_parcel = depth_image[centerpoint_y][centerpoint_x] #Calculate distance in [mm] 
+                            #distance_to_table = depth_image[200][200]
+                            cv2.circle(converted_image, (0,0), 3, (10000, 10000, 10000), -1)
+                            #print("testtstst: ", depth_image[centerpoint_x][centerpoint_y])
+                            object_width_pixels = rect[1][1]
+                            object_length_pixels = rect[1][0]
+                            print("distance to parcel: ", distance_to_parcel)
+                            print("WIDTH IN PIXELS", object_width_pixels)
+                            print("LENGTH IN PIXELS", object_length_pixels)
 
-                        XYZ = self.calculate_XYZ(centerpoint_x + 638, centerpoint_y + 242, 1)
-                        print("XYZ", XYZ[0])
+                            self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
+                            object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
+                            object_length_on_sensor = self.sensor_length_mm * object_length_pixels / self.sensor_length_px
+                            # print("Bw: ", object_width_on_sensor)
+                            # print("Bh: ", object_height_on_sensor)
+                            # print("focal: ", self.focal_length*self.pixel_size)
+                            width = (distance_to_parcel * object_width_on_sensor / (self.focal_length_x*self.pixel_size)) / 10
+                            length = (distance_to_parcel * object_length_on_sensor / (self.focal_length_y*self.pixel_size)) / 10
 
-                        #todo: lav om til hand eye cal
-                        pos_x = XYZ[0][0] * 100
-                        pos_y = XYZ[1][0] * 100
-                        pos_z = height
-                        print("posx: ", pos_x, "posy: ", pos_y, "posz: ", pos_z)
-                        #print("Table",distance_to_table)
+                            #width = (rect[1][1])*self.cm_per_pixel
+                            #length = (rect[1][0])*self.cm_per_pixel
+                            height = self.cam_height - distance_to_parcel
+                            angle = rect[2]
+                            print("Parcel width [cm]", width)
+                            print("Parcel length [cm]", length)
+                            print("Parcel height [cm]", height)
+                            print("Parcel angle ", angle)
 
-                        # #Call parcel_pub function
-                        self.parcel_pub(Point(width, length, height), angle, Point(pos_x, pos_y, pos_z))
-                        # self.parcel_pub((rect[1][1])/self.cm_per_pixel, (rect[1][0])/self.cm_per_pixel, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
-                    # #Overlay centerpoint and contours to thresholded images
-                    cv2.drawContours(converted_image,[box],0,(255,255,255),2)
-                    cv2.circle(converted_image, centerpoint, 3, (10000, 10000, 10000), -1)
+                            XYZ = self.calculate_XYZ(centerpoint_x + 638, centerpoint_y + 242, 1)
+                            print("XYZ", XYZ[0])
+
+                            #todo: lav om til hand eye cal
+                            pos_x = XYZ[0][0] * 100
+                            pos_y = XYZ[1][0] * 100
+                            pos_z = height
+                            print("posx: ", pos_x, "posy: ", pos_y, "posz: ", pos_z)
+                            #print("Table",distance_to_table)
+
+                            # #Call parcel_pub function
+                            self.parcel_pub(Point(width, length, height), angle, Point(pos_x, pos_y, pos_z))
+                            # self.parcel_pub((rect[1][1])/self.cm_per_pixel, (rect[1][0])/self.cm_per_pixel, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
+                        # #Overlay centerpoint and contours to thresholded images
+                        cv2.drawContours(converted_image,[box],0,(255,255,255),2)
+                        cv2.circle(converted_image, centerpoint, 3, (10000, 10000, 10000), -1)
 
             #cv2.circle(uncropped_image, (890, 535), 3, (10000, 10000, 10000), -1)
             #cv2.circle(converted_image, (890 - 638, 535 - 242), 3, (10000, 10000, 1000), -1)

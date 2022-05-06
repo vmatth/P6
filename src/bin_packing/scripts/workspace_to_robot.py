@@ -53,8 +53,8 @@ class converter():
         # <-----o                       o----->
 
         #How much the camera frame is displaced from the robot's frame [m] 
-        cam_x_displacement = 0.04
-        cam_y_displacement = -0.53
+        cam_x_displacement = 0.0465
+        cam_y_displacement = -0.5325
         cam_z_displacement = 0
         #Calculate the point with respect to the robot's frame (The incoming data is in cm so we convert to m)
         converted_data.start_pos.x = (data.start_pos.x/100) + cam_x_displacement

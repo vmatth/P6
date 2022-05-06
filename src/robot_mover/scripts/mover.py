@@ -127,12 +127,12 @@ class mover:
         parcel_pose = geometry_msgs.msg.PoseStamped()
         parcel_pose.header.frame_id = "base_link"
         parcel_pose.pose.position = Point(parcel.start_pos.x, parcel.start_pos.y, parcel.actual_size.z/100/2 - 0.014) #- 0.014 as the table is lower than the robot frame 
-        parcel_pose.pose.orientation = self.euler_to_orientation(0, 0, parcel.angle)
+        parcel_pose.pose.orientation = self.euler_to_orientation(0, 0, 90 + abs(parcel.angle))
         parcel_name = "parcel" + str(self.parcels_packed)
 
         self.scene.add_box(parcel_name, parcel_pose, size=(parcel.actual_size.x/100 -0.005, parcel.actual_size.y/100 -0.005, parcel.actual_size.z/100 -0.005)) #The parcel size is subtracted by 0.5 cm to parcels aren't packed direcly next to each other.
 
-        self.update_end_goal(parcel.end_pos)
+        self.update_end_goal(parcel.end_pos, parcel.parcel_rotation)
         self.go_to_pose("pick_ready")
         self.pick_parcel(parcel)
 
@@ -149,7 +149,7 @@ class mover:
         print("PARCEL ANGLE: ", parcel.angle)
         picking_pose = geometry_msgs.msg.Pose()
         picking_pose.position = Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009) #- 0.009 as the table is lower than the robot frame 
-        picking_pose.orientation = self.euler_to_orientation(-180, 0, 90 + parcel.angle)
+        picking_pose.orientation = self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle))
 
         print("Pick Parcel Pose Goal: ", picking_pose.position)    
         self.group.set_pose_target(picking_pose)
@@ -163,6 +163,7 @@ class mover:
             self.connect_parcel()
             rospy.sleep(0.5)         
             self.go_to_pose("pack_ready")
+            self.go_to_above_pack()
             self.place_parcel()
             self.detach_parcel()
             self.go_to_pose("pack_ready")
@@ -174,12 +175,12 @@ class mover:
 
     #Stores the end_goal in the local variable: "self.parcel_goal"
     #This goal is used for later when the robot needs to place a parcel
-    def update_end_goal(self, goal):
+    def update_end_goal(self, goal, rotation):
 
         pose_goal = geometry_msgs.msg.Pose()
 
         pose_goal.position = Point(goal.x, goal.y, goal.z) #- 0.009 as the table is lower than the robot frame 
-        pose_goal.orientation = self.euler_to_orientation(-180, 0, 0)
+        pose_goal.orientation = self.euler_to_orientation(-180, 0, -90 + rotation)
 
         self.parcel_goal = pose_goal
        # print("Saving parcel place goal: ", self.parcel_goal)
@@ -235,6 +236,29 @@ class mover:
         print("Did plan succeed: ", plan)
 
         return plan
+
+    #This function moves the robot above the position where the parcel will be packed
+    #This is to help with the trajectory planning as the robot will only need to move downwards along the z-axis
+    def go_to_above_pack(self):
+        print("Moving above pack")
+        print("sfdlksnklfnfsknsd", self.parcel_goal.position)
+        #above_pose = geometry_msgs.msg.PoseStamped()
+        above_pose = geometry_msgs.msg.Pose()
+
+        above_pose.position.x = self.parcel_goal.position.x
+        above_pose.position.y = self.parcel_goal.position.y
+        above_pose.position.z = self.parcel_goal.position.z + 0.1
+
+        above_pose.orientation = self.parcel_goal.orientation
+        
+        print("Above Pose: ", above_pose.position)
+        print("ahasdksdsalhddshdsl", self.parcel_goal.position)
+
+        self.group.set_pose_target(above_pose)
+        plan = self.group.go(wait=True)
+        self.group.stop()  
+
+
 
     #This function moves the robot to each corner in the workspace
     #The purpose is to check if the robot has enough range for the given workspace
