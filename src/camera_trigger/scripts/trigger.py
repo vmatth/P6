@@ -26,19 +26,16 @@ class depth_dectect:
         self.bridge = CvBridge()
         self.depth_data = None
         self.threshold_depth = None #distances higher than this are removed
-        self.cam_height = 1014 #mm
+        self.cam_height_principle_point = 1023
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera)
         self.focal_length_x = 1.0663355230063235 * 10**3 #px
         self.focal_length_y = 1.0676521964588569 * 10**3 #px
         self.pixel_size = 0.0031 #mm/px
         self.sensor_width_mm = 5.952 #mm
         self.sensor_length_mm = 3.348 #mm
-        self.sensor_width_px = 1920 #px
+        self.sensor_width_px = 1920 #px 
         self.sensor_length_px = 1080 #px
 
-        self.cm_per_pixel = None #pix / cm ### fix so its not static
-        self.cm_per_pixel_workspace_x = 0.0952
-        self.cm_per_pixel_workspace_y = 0.097
         self.depth_list = []
         self.counter = 0
 
@@ -95,11 +92,13 @@ class depth_dectect:
         new_lowest_pix = list[(len(list))-4:len(list)]
         #print("new pixel array: ", new_lowest_pix)
         # find the 4 lowest pixel depths
-        lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)-1]  
+        #lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)-1] # average
+        lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)] # median
         print("depths: ", lowest_pixel_depth)
  
         # calculate average of the 4 lowest pixel depths
-        self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+40)/10  
+        #self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+40)/10  #average
+        self.threshold_depth = np.median(lowest_pixel_depth) / 10.0 #median. Divide by 10.0 to go from mm to m
         print("thresholding depth: ", self.threshold_depth)
         #cv2.circle(depth_image, lowest_pix, 3, (10000, 10000, 10000), -1)
 
@@ -119,8 +118,11 @@ class depth_dectect:
     def thresholding(self, depth_data):
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
-            uncropped_image = depth_image.copy()
-            depth_image = depth_image[242:785, 638:1050]
+            crop_min_y = 243
+            crop_max_y = 785
+            crop_min_x = 638
+            crop_max_x = 1050
+            depth_image = depth_image[crop_min_y:crop_max_y, crop_min_x:crop_max_x]
             height = depth_image.shape[0]
             width = depth_image.shape[1]
             print("height width", height, width)
@@ -187,25 +189,41 @@ class depth_dectect:
                             print("WIDTH IN PIXELS", object_width_pixels)
                             print("LENGTH IN PIXELS", object_length_pixels)
 
-                            self.cm_per_pixel = 0.000945918 * ((depth_image[centerpoint_y][centerpoint_x]) / 10) - 0.001137555
                             object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
                             object_length_on_sensor = self.sensor_length_mm * object_length_pixels / self.sensor_length_px
                             # print("Bw: ", object_width_on_sensor)
                             # print("Bh: ", object_height_on_sensor)
                             # print("focal: ", self.focal_length*self.pixel_size)
-                            width = (distance_to_parcel * object_width_on_sensor / (self.focal_length_x*self.pixel_size)) / 10
-                            length = (distance_to_parcel * object_length_on_sensor / (self.focal_length_y*self.pixel_size)) / 10
+                            width = (distance_to_parcel * object_width_on_sensor / (self.focal_length_x*self.pixel_size)) / 10.0
+                            length = (distance_to_parcel * object_length_on_sensor / (self.focal_length_y*self.pixel_size)) / 10.0
 
-                            #width = (rect[1][1])*self.cm_per_pixel
-                            #length = (rect[1][0])*self.cm_per_pixel
-                            height = self.cam_height - distance_to_parcel
+                            #Calculate parcel height based on distance from centerpoint
+                            # cam
+                            #   | \
+                            #   |  \ c
+                            # a |   \
+                            #   |    \
+                            #   ------ (XY)
+                            #      b
+                            XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
+                            a = self.cam_height_principle_point 
+                            b = XYZ[1] * 1000 #m to mm (X coordinate: [0], Y coordinate : [1])
+                            #calculate c
+
+                            c = math.sqrt(a**2 + b**2)
+                            
+                            print("a", a)
+                            print("b", b)
+                            print("c", c)
+                        
+                            height = (c - distance_to_parcel) / 10.0 #mm to cm
                             angle = rect[2]
                             print("Parcel width [cm]", width)
                             print("Parcel length [cm]", length)
                             print("Parcel height [cm]", height)
                             print("Parcel angle ", angle)
 
-                            XYZ = self.calculate_XYZ(centerpoint_x + 638, centerpoint_y + 242, 1)
+                            XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
                             print("XYZ", XYZ[0])
 
                             #todo: lav om til hand eye cal
@@ -256,40 +274,40 @@ class depth_dectect:
         R = np.matrix([[9.9988107827826278e-01, -5.9309422117523802e-04,-1.5410306302711205e-02],[6.1924030152182927e-04, 9.9999837692924043e-01, 1.6919457242115465e-03], [1.5409277807462079e-02, -1.7012871978343688e-03, 9.9987982266836595e-01]])
         t = np.array([[-4.0874634519709227e-02, 1.3982841913969224e-04, 2.7999300285299357e-03]])
 
-        print("u,v,z", u, v, z)
-        print("A: ", A)
-        print("R: ", R)
-        print("t: ", t)
+        # print("u,v,z", u, v, z)
+        # print("A: ", A)
+        # print("R: ", R)
+        # print("t: ", t)
 
         uv1 = np.array([[u,v,z]])
 
         #Transpose uv1
         uv1 = uv1.T
-        print("uv1 Transpose: ", uv1)
+        #print("uv1 Transpose: ", uv1)
 
         #Times by scaling factor
         s_uv1 = s*uv1
-        print("s*uv1", s_uv1)
+        #print("s*uv1", s_uv1)
 
         #Invert A
         A_inv = inv(A)
-        print("A^-1: ", A_inv)
+        #print("A^-1: ", A_inv)
 
         #A^-1 * s_uv1
         xyz_c = A_inv.dot(s_uv1)
-        print("A^-1 * s_uv1: ", xyz_c)
+        #print("A^-1 * s_uv1: ", xyz_c)
 
         #Transpose t
         t = t.T
-        print("T Transpose: ", t)
+        #print("T Transpose: ", t)
 
         #Substract t
         xyz_c = xyz_c - t
-        print("Subtracted by T: ", xyz_c)
+        #print("Subtracted by T: ", xyz_c)
 
         #Invert R
         R_inv = inv(R)
-        print("R^-1: ", R_inv)
+        #print("R^-1: ", R_inv)
 
         XYZ = R_inv.dot(xyz_c)
         print("Final XYZ", XYZ)
