@@ -92,13 +92,13 @@ class depth_dectect:
         new_lowest_pix = list[(len(list))-4:len(list)]
         #print("new pixel array: ", new_lowest_pix)
         # find the 4 lowest pixel depths
-        #lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)-1] # average
-        lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)] # median
+        lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)-1] # average
+        #lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)] # median
         print("depths: ", lowest_pixel_depth)
  
         # calculate average of the 4 lowest pixel depths
-        #self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+40)/10  #average
-        self.threshold_depth = np.median(lowest_pixel_depth) / 10.0 #median. Divide by 10.0 to go from mm to m
+        self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+40)/10  #average
+        #self.threshold_depth = np.median(lowest_pixel_depth) / 10.0 #median. Divide by 10.0 to go from mm to m
         print("thresholding depth: ", self.threshold_depth)
         #cv2.circle(depth_image, lowest_pix, 3, (10000, 10000, 10000), -1)
 
@@ -224,7 +224,7 @@ class depth_dectect:
                             print("Parcel angle ", angle)
 
                             XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
-                            print("XYZ", XYZ[0])
+                            #print("XYZ", XYZ[0])
 
                             #todo: lav om til hand eye cal
                             pos_x = XYZ[0][0] * 100
@@ -310,7 +310,7 @@ class depth_dectect:
         #print("R^-1: ", R_inv)
 
         XYZ = R_inv.dot(xyz_c)
-        print("Final XYZ", XYZ)
+        #print("Final XYZ", XYZ)
 
         return XYZ
 

@@ -87,9 +87,15 @@ def main():
     rospy.init_node('workspace', anonymous=True)
     #rosrun pkg node _x:=2 _y:5 _z:=10
     #size in cm
+
+    #Size at UR5 setup
     x = rospy.get_param("~size_x", 35)
     y = rospy.get_param("~size_y", 60)
     z = rospy.get_param("~size_z", 30)
+    #For testing
+    x = rospy.get_param("~size_x", 12)
+    y = rospy.get_param("~size_y", 40)
+    z = rospy.get_param("~size_z", 50)
 
     #pos in m
     center_pos_x = rospy.get_param("~center_pos_x", 0)

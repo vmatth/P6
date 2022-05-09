@@ -41,9 +41,13 @@ class mover:
         self.parcels_packed = 0
         self.workspace = None
 
+
+
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
 
         rospy.sleep(2)
+
+        self.print_info()
 
         self.add_environment()
         self.clear_workspace()
@@ -53,8 +57,7 @@ class mover:
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
 
         print("Sim ", self.sim)
-        self.go_to_pose("idle")
-        #self.print_info()
+        self.go_to_predefined_pose("idle")
 
     def print_info(self):
         print("end effector: ", self.eef_link)
@@ -118,60 +121,91 @@ class mover:
     def add_walls(self):
         print("Adding walls")
 
-
     #This function is the callback function when receiving a new packing info from the packing algorithm
     #Adds the parcel to rviz and calls another function that begins picking the added parcel
     def add_parcel(self, parcel):
-        print("adding parcel at pos", Point(parcel.start_pos.x, parcel.start_pos.y, parcel.actual_size.z/100/2 - 0.014))
+        print("adding parcel at pos", Point(parcel.start_pos.x, parcel.start_pos.y, parcel.non_rotated_size.z/100/2 - 0.014))
         #add parcel to environment !
         parcel_pose = geometry_msgs.msg.PoseStamped()
         parcel_pose.header.frame_id = "base_link"
-        parcel_pose.pose.position = Point(parcel.start_pos.x, parcel.start_pos.y, parcel.actual_size.z/100/2 - 0.014) #- 0.014 as the table is lower than the robot frame 
+        parcel_pose.pose.position = Point(parcel.start_pos.x, parcel.start_pos.y, parcel.non_rotated_size.z/100/2 - 0.014) #- 0.014 as the table is lower than the robot frame 
         parcel_pose.pose.orientation = self.euler_to_orientation(0, 0, 90 + abs(parcel.angle))
         parcel_name = "parcel" + str(self.parcels_packed)
 
-        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.actual_size.x/100 -0.005, parcel.actual_size.y/100 -0.005, parcel.actual_size.z/100 -0.005)) #The parcel size is subtracted by 0.5 cm to parcels aren't packed direcly next to each other.
+        self.scene.add_box(parcel_name, parcel_pose, size=(parcel.non_rotated_size.x/100 -0.005, parcel.non_rotated_size.y/100 -0.005, parcel.non_rotated_size.z/100 -0.005)) #The parcel size is subtracted by 0.5 cm to parcels aren't packed direcly next to each other.
 
         self.update_end_goal(parcel.end_pos, parcel.parcel_rotation)
-        self.go_to_pose("pick_ready")
+        self.go_to_predefined_pose("pick_ready")
         self.pick_parcel(parcel)
+
 
 
     #This function handles all of the pick and place logic for the robotic arm
     #Starts by calculating the picking position and orientation of the parcel
     #Thereafter, picks, connects, places, detacthes and returns to idle
     def pick_parcel(self, parcel):
-        # x: rotation around the vertical axis | y: gripper to look down. | z: unused
-        # x: -180 is the default rotation for the gripper
-        # x: parcel.angle is the rotation of the parcel detected by the camera
-        # x: parcel.parcel_rotation is for rotating the parcel +90 deg on the vertical axis
-        #rot = Rotation.from_euler('xyz', [90 + parcel.angle + parcel.parcel_rotation, 90, 0], degrees=True)
-        print("PARCEL ANGLE: ", parcel.angle)
-        picking_pose = geometry_msgs.msg.Pose()
-        picking_pose.position = Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009) #- 0.009 as the table is lower than the robot frame 
-        picking_pose.orientation = self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle))
-
-        print("Pick Parcel Pose Goal: ", picking_pose.position)    
-        self.group.set_pose_target(picking_pose)
-
-        plan = self.group.go(wait=True)
-        # Calling ``stop()`` ensures that there is no residual movement
-        self.group.stop()
-
-        if plan==1:
-            rospy.sleep(0.5)
+        #Pick parcel from above
+        if parcel.picking_side == 1:
+            plan = self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009), self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle)))
+            rospy.sleep(0.25)
             self.connect_parcel()
-            rospy.sleep(0.5)         
-            self.go_to_pose("pack_ready")
+        #Pick parcel from side
+        elif parcel.picking_side == 2:
+            #Rotate parcel to 0 degrees
+            if self.rotate_parcel_to_angle(parcel, 0):
+                plan = self.grab_parcel_at_picking_side(parcel, parcel.non_rotated_size.y/100)
+        elif parcel.picking_side == 3:
+        #Rotate parcel to 0 degrees
+            if self.rotate_parcel_to_angle(parcel, 90):
+                plan = self.grab_parcel_at_picking_side(parcel, parcel.non_rotated_size.x/100)
+
+        #If the plan succeeded then pack
+        if plan == 1:
+            rospy.sleep(0.25)         
+            self.go_to_predefined_pose("pack_ready")
             self.go_to_above_pack()
             self.place_parcel()
             self.detach_parcel()
-            self.go_to_pose("pack_ready")
-            self.go_to_pose("idle")
+            self.go_to_predefined_pose("pack_ready")
+            self.go_to_predefined_pose("idle")
+            self.group.clear_pose_targets()
+            self.parcels_packed = self.parcels_packed + 1
+        else:
+            print("Plan Failed")
 
-        self.group.clear_pose_targets()
 
-        self.parcels_packed = self.parcels_packed + 1
+    #This function rotates the parcel to a specificed angle (degrees) which simplifies picking different sides
+    #Returns True or False (if we succeeded)
+    def rotate_parcel_to_angle(self, parcel, ang):
+        print("Rotating parcel to angle: ", ang)
+
+        #Pick the parcel
+        if self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009), self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle))):  
+            rospy.sleep(0.5)
+            self.connect_parcel()
+            rospy.sleep(0.5)
+            #Rotate the parcel
+            if self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009), self.euler_to_orientation(-180, 0, 90 + ang)):  
+                self.detach_parcel()
+                rospy.sleep(0.5)
+                self.go_to_predefined_pose("pick_ready")
+                return True
+        return False
+
+    #Grabs that parcel from the left side
+    #Returns if succeeded
+    def grab_parcel_at_picking_side(self, parcel, new_width):
+        #Go to position next to the parcel
+        self.go_to_point(Point(parcel.start_pos.x + new_width, parcel.start_pos.y, parcel.start_pos.z - 0.009 - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))
+        #Go to parcel
+        self.go_to_point(Point(parcel.start_pos.x + (new_width/2), parcel.start_pos.y, parcel.start_pos.z - 0.009 - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))
+        #Grab parcel
+        rospy.sleep(0.25)
+        self.connect_parcel()
+        rospy.sleep(0.25)
+        #Move slightly up to prevent collision with table
+        plan = self.go_to_point(Point(parcel.start_pos.x + (parcel.non_rotated_size.y/100/2), parcel.start_pos.y, parcel.start_pos.z + 0.2), self.euler_to_orientation(180, -90, 180))
+        return plan
 
     #Stores the end_goal in the local variable: "self.parcel_goal"
     #This goal is used for later when the robot needs to place a parcel
@@ -227,7 +261,7 @@ class mover:
             set_io(fun = 1, pin = 0 ,state = 0)     
 
     #This function moves the robot to "pose" which is a string containing the name of the pose defined in the moveit configuration
-    def go_to_pose(self, pose):
+    def go_to_predefined_pose(self, pose):
         print("Going to ", pose)
         self.group.set_named_target(pose)
         plan = self.group.go(wait=True)
@@ -241,7 +275,6 @@ class mover:
     #This is to help with the trajectory planning as the robot will only need to move downwards along the z-axis
     def go_to_above_pack(self):
         print("Moving above pack")
-        print("sfdlksnklfnfsknsd", self.parcel_goal.position)
         #above_pose = geometry_msgs.msg.PoseStamped()
         above_pose = geometry_msgs.msg.Pose()
 
@@ -252,12 +285,10 @@ class mover:
         above_pose.orientation = self.parcel_goal.orientation
         
         print("Above Pose: ", above_pose.position)
-        print("ahasdksdsalhddshdsl", self.parcel_goal.position)
 
         self.group.set_pose_target(above_pose)
         plan = self.group.go(wait=True)
         self.group.stop()  
-
 
 
     #This function moves the robot to each corner in the workspace
@@ -272,15 +303,19 @@ class mover:
         plan = self.group.go(wait=True)
         self.group.stop()
 
-    def go_to_test_point(self, point):
-        print("Going to test point ", point)
+    #Moves the robot to a pose.
+    #Inputs are points (x,y,z) coordinates and orientation (x,y,z,w) quaternion.
+    #Returns True or False depending on whether or not the movement succeded
+    def go_to_point(self, point, orientation):
+        print("Going to point ", point)
         p = geometry_msgs.msg.Pose()
         p.position = point
-        p.orientation = self.euler_to_orientation(-180, 0, 0)
-        print("First val position: ", p.position)    
+        p.orientation = orientation  
         self.group.set_pose_target(p)
         plan = self.group.go(wait=True)
-        self.group.stop()       
+        self.group.stop()    
+
+        return plan 
 
     #Convert x y z degrees to a geometry_msg.Pose.orientation (a quaternion)
     def euler_to_orientation(self, x, y, z): 

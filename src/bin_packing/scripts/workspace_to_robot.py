@@ -42,6 +42,7 @@ class converter():
         converted_data.parcel_rotation = data.parcel_rotation
         converted_data.actual_size = data.actual_size
         converted_data.rounded_size = data.rounded_size
+        converted_data.non_rotated_size = data.non_rotated_size
 
         ##ALL DISTANCES ARE IN METRES
 

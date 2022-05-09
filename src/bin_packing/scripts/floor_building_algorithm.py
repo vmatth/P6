@@ -116,6 +116,7 @@ class floor_building:
         r = 0 #Times rotated
         original_parcel = parcel(Point(0,0,0), _parcel.actual_size, _parcel.start_position, _parcel.angle) #Copy the original parcel as _parcel will have performed many rotations by the end of this function
         h = _parcel.rounded_size.z
+        _non_rotated_size = _parcel.actual_size #Copy the original size, as the other sizes will be rotated by the end of this function
 
         for y in range(ws_y):
             for x in range(ws_x):
@@ -280,7 +281,7 @@ class floor_building:
                 parcel_rotation = 90
 
                 
-            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, original_parcel.actual_size, original_parcel.rounded_size, picking_side, parcel_rotation, original_parcel.angle)
+            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, original_parcel.actual_size, original_parcel.rounded_size, picking_side, parcel_rotation, original_parcel.angle, _non_rotated_size)
 
         elif len(xyzlist) <= 0:
             return False
@@ -291,11 +292,12 @@ class floor_building:
             print("Parcel cannot be packed into the roller cage")
             rospy.sleep(999)
         
-    def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle):
+    def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()
 
         msg.actual_size = actual_size
         msg.rounded_size = rounded_size
+        msg.non_rotated_size = non_rotated_size
         msg.end_pos = end_pos
         msg.start_pos = start_pos 
         msg.picking_side = picking_side
