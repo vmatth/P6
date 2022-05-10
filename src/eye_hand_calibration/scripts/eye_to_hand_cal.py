@@ -38,8 +38,6 @@ class hand_eye:
 
         self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color", Image, self.callback)
 
-        self.pattern_size = (7,5)
-        self.square_size = 0.03
 
 
     def quaternion_rotation_matrix(self, r_gripper2base_quat):
@@ -80,8 +78,8 @@ class hand_eye:
                             [r10, r11, r12],
                             [r20, r21, r22]])
                             
-        R_gripper2base = inv(R_base2gripper)
-        return R_gripper2base
+        #R_gripper2base = inv(R_base2gripper)
+        return R_base2gripper
 
     def get_rotation(self):
         print("hi vini")
@@ -95,43 +93,18 @@ class hand_eye:
         print("hi vinini")
         t_base2gripper = self.group.get_current_pose().pose.position
         print("t_base2gripper", t_base2gripper)
-        t_gripper2base = inv(t_base2gripper)
-        print("t_gripper2base")
-        return t_gripper2base
+        #t_gripper2base = inv(t_base2gripper)
+        #print("t_gripper2base")
+        #return t_gripper2base
+        return t_base2gripper
 
 
-    def find_corners(self, image):
-        found, corners = cv2.findChessboardCorners(image, self.pattern_size)
-        term = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1)
-        if found:
-            cv2.cornerSubPix(image, corners, (5, 5), (-1, -1), term)
-        return found, corners
-
-    def draw_corners(self, image, corners):
-        color_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-        cv2.drawChessboardCorners(color_image, self.pattern_size, corners, True)
-        return color_image
+    def get_transformation_matrix(self, R_base2gripper, t_base2gripper):
+        H_base2gripper = np.hstack(R_base2gripper, t_base2gripper)
+        print("Transformation Matrix: ", H_base2gripper)
 
 
-    def get_object_pose(self, object_points, image_points, camera_matrix, dist_coeffs):
-        ret, rvec, tvec = cv2.solvePnP(object_points, image_points, camera_matrix, dist_coeffs)
-        return rvec.flatten(), tvec.flatten()
 
-    def calibrate_lens(self, image_list):
-        img_points, obj_points = [], []
-        h,w = 0, 0
-        for img in image_list:
-            h, w = img.shape[:2]
-            found,corners = self.find_corners(img)
-            if not found:
-                raise Exception("chessboard calibrate_lens Failed to find corners in img")
-            img_points.append(corners.reshape(-1, 2))
-            obj_points.append(self.pattern_points)
-        camera_matrix = np.zeros((3,3))
-        dist_coeffs = np.zeros(5)
-    #    rms, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w,h))
-        cv2.calibrateCamera(obj_points, img_points, (w,h), camera_matrix, dist_coeffs)
-        return camera_matrix, dist_coeffs
 
 
 def main():
