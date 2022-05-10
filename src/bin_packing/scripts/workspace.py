@@ -93,8 +93,8 @@ def main():
     y = rospy.get_param("~size_y", 60)
     z = rospy.get_param("~size_z", 30)
     #For testing
-    x = rospy.get_param("~size_x", 12)
-    y = rospy.get_param("~size_y", 40)
+    x = rospy.get_param("~size_x", 10)
+    y = rospy.get_param("~size_y", 22)
     z = rospy.get_param("~size_z", 50)
 
     #pos in m

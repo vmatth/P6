@@ -40,14 +40,11 @@ class mover:
 
         self.parcels_packed = 0
         self.workspace = None
-
-
-
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
 
         rospy.sleep(2)
 
-        self.print_info()
+        #self.print_info()
 
         self.add_environment()
         self.clear_workspace()
@@ -152,12 +149,13 @@ class mover:
         #Pick parcel from side
         elif parcel.picking_side == 2:
             #Rotate parcel to 0 degrees
-            if self.rotate_parcel_to_angle(parcel, 0):
-                plan = self.grab_parcel_at_picking_side(parcel, parcel.non_rotated_size.y/100)
+            if self.rotate_parcel_to_angle(parcel, 90):
+                print("NEEEEEEEEEEEEW WIDTH:", parcel.non_rotated_size.y/100)
+                plan = self.grab_parcel_at_picking_side(parcel, parcel.non_rotated_size.y/100, 0)
         elif parcel.picking_side == 3:
         #Rotate parcel to 0 degrees
-            if self.rotate_parcel_to_angle(parcel, 90):
-                plan = self.grab_parcel_at_picking_side(parcel, parcel.non_rotated_size.x/100)
+            if self.rotate_parcel_to_angle(parcel, 0):
+                plan = self.grab_parcel_at_picking_side(parcel, parcel.non_rotated_size.x/100, 90)
 
         #If the plan succeeded then pack
         if plan == 1:
@@ -177,8 +175,10 @@ class mover:
     #This function rotates the parcel to a specificed angle (degrees) which simplifies picking different sides
     #Returns True or False (if we succeeded)
     def rotate_parcel_to_angle(self, parcel, ang):
-        print("Rotating parcel to angle: ", ang)
-
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print("Current parcel angle is: ", abs(parcel.angle))
+        print("Desired angle is, ", ang)
+        print("Angle difference ", abs(parcel.angle - ang))
         #Pick the parcel
         if self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009), self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle))):  
             rospy.sleep(0.5)
@@ -194,17 +194,29 @@ class mover:
 
     #Grabs that parcel from the left side
     #Returns if succeeded
-    def grab_parcel_at_picking_side(self, parcel, new_width):
+    def grab_parcel_at_picking_side(self, parcel, new_width, angle):
+        grab_offset = 0.0 #The gripper pushes the parcel slightly to make sure it has grabbed it
         #Go to position next to the parcel
-        self.go_to_point(Point(parcel.start_pos.x + new_width, parcel.start_pos.y, parcel.start_pos.z - 0.009 - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))
-        #Go to parcel
-        self.go_to_point(Point(parcel.start_pos.x + (new_width/2), parcel.start_pos.y, parcel.start_pos.z - 0.009 - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))
+        self.go_to_point(Point(parcel.start_pos.x + new_width, parcel.start_pos.y, parcel.start_pos.z - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))
+        #Remove parcel from collision (temporary)
+        # parcel_name = "parcel" + str(self.parcels_packed)
+        # self.scene.remove_world_object(parcel_name)
+        # #Go to parcel
+        self.go_to_point(Point(parcel.start_pos.x + (new_width/2), parcel.start_pos.y, parcel.start_pos.z - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))
+        # #Re-Add parcel to collision
+        # gripper_pose = self.group.get_current_pose() #First we find where to gripper is located
+        # parcel_pose = geometry_msgs.msg.PoseStamped()
+        # parcel_pose.header.frame_id = "base_link"
+        # parcel_pose.pose.position = Point(parcel.start_pos.x - grab_offset, parcel.start_pos.y, parcel.non_rotated_size.z/100/2 - 0.014) #- 0.014 as the table is lower than the robot frame 
+        # parcel_pose.pose.orientation = self.euler_to_orientation(0, 0, angle)
+        # self.scene.add_box(parcel_name, parcel_pose, size=(parcel.non_rotated_size.x/100 -0.005, parcel.non_rotated_size.y/100 -0.005, parcel.non_rotated_size.z/100 -0.005)) #The parcel size is subtracted by 0.5 cm to parcels aren't packed direcly next to each other.
         #Grab parcel
-        rospy.sleep(0.25)
+        rospy.sleep(9999)
         self.connect_parcel()
         rospy.sleep(0.25)
         #Move slightly up to prevent collision with table
-        plan = self.go_to_point(Point(parcel.start_pos.x + (parcel.non_rotated_size.y/100/2), parcel.start_pos.y, parcel.start_pos.z + 0.2), self.euler_to_orientation(180, -90, 180))
+        #plan = self.go_to_point(Point(parcel.start_pos.x + (parcel.non_rotated_size.y/100/2), parcel.start_pos.y, parcel.start_pos.z + 0.2), self.euler_to_orientation(180, -90, 180))
+        plan = True
         return plan
 
     #Stores the end_goal in the local variable: "self.parcel_goal"
