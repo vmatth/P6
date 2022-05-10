@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from re import S
 import rospy
 import cv2 
 from sensor_msgs.msg import Image
@@ -18,6 +19,8 @@ from geometry_msgs.msg import Pose
 from scipy.spatial.transform import Rotation
 import glob
 from numpy.linalg import inv
+from numpy import median
+
 
 # class eye_hand_calibration:
 
@@ -33,7 +36,10 @@ class hand_eye:
         # moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('robot_mover', anonymous=True)
 
-        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color", Image, self.callback)
+        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_depth_rect", Image, self.callback)
+
+        self.counter = 0
+        self.distances = []
 
         # self.robot = moveit_commander.RobotCommander()
         # self.scene = moveit_commander.PlanningSceneInterface()
@@ -180,14 +186,27 @@ class hand_eye:
             x = 890
             y = 535
             #Draw circle at xy
-            cv2.circle(image, (x,y), 3, (255, 0, 0), -1)
+            distance = image[y][x]
+            cv2.circle(image, (x,y), 3, (100000, 100000, 100000), -1)
+
+
+            self.distances.append(distance)
+            self.counter = self.counter + 1
+            if(self.counter > 1000):
+                print("Calculating median ")
+                median = np.median(self.distances)
+                print("Median: ", median)
+                rospy.sleep(1000)
+
+
 
             #Get distance (z) to xy value 
             z = 1
 
             self.calculate_XYZ(x,y,z)
+            print("DISTANCE", distance)
             cv2.waitKey(3)
-            cv2.imshow("ja2", image)
+            cv2.imshow("ja2", image * 16)
             #cv2.waitKey(0)
 
         except CvBridgeError as e:

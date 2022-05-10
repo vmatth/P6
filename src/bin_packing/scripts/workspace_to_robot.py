@@ -42,6 +42,7 @@ class converter():
         converted_data.parcel_rotation = data.parcel_rotation
         converted_data.actual_size = data.actual_size
         converted_data.rounded_size = data.rounded_size
+        converted_data.non_rotated_size = data.non_rotated_size
 
         ##ALL DISTANCES ARE IN METRES
 
@@ -53,8 +54,8 @@ class converter():
         # <-----o                       o----->
 
         #How much the camera frame is displaced from the robot's frame [m] 
-        cam_x_displacement = 0.04
-        cam_y_displacement = -0.53
+        cam_x_displacement = 0.0465
+        cam_y_displacement = -0.5325
         cam_z_displacement = 0
         #Calculate the point with respect to the robot's frame (The incoming data is in cm so we convert to m)
         converted_data.start_pos.x = (data.start_pos.x/100) + cam_x_displacement
