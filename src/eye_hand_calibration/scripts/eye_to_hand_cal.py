@@ -36,7 +36,11 @@ class hand_eye:
 
         self.eef_link = self.group.get_end_effector_link()
 
-        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color", Image, self.callback)
+        #self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color", Image, self.callback)
+
+        r = self.get_rotation()
+        t = self.get_translation()
+        self.get_transformation_matrix(r, t)
 
 
 
@@ -77,14 +81,14 @@ class hand_eye:
         R_base2gripper = np.array([[r00, r01, r02],
                             [r10, r11, r12],
                             [r20, r21, r22]])
-                            
+        print("R_base2gripper ", R_base2gripper)                    
         #R_gripper2base = inv(R_base2gripper)
         return R_base2gripper
 
     def get_rotation(self):
         print("hi vini")
         r_gripper2base_quat = self.group.get_current_pose().pose.orientation
-        print("R_Gripper2Base Quat", r_gripper2base_quat)
+        # print("R_Gripper2Base Quat", r_gripper2base_quat)
         # Returns R_gripper2base
         return self.quaternion_rotation_matrix(r_gripper2base_quat)
         
@@ -92,16 +96,23 @@ class hand_eye:
     def get_translation(self):
         print("hi vinini")
         t_base2gripper = self.group.get_current_pose().pose.position
-        print("t_base2gripper", t_base2gripper)
-        #t_gripper2base = inv(t_base2gripper)
+        #t_gripper2base = inv(t_base2grippers)
         #print("t_gripper2base")
         #return t_gripper2base
-        return t_base2gripper
+        t = np.array([[t_base2gripper.x, t_base2gripper.y, t_base2gripper.z]]).T
+        print("translation ", t)
+        return t
 
 
     def get_transformation_matrix(self, R_base2gripper, t_base2gripper):
-        H_base2gripper = np.hstack(R_base2gripper, t_base2gripper)
+        H_base2gripper = np.hstack((R_base2gripper, t_base2gripper))
         print("Transformation Matrix: ", H_base2gripper)
+
+        file = open("pose_list.txt", "w+")
+        #np.savetxt("file1.txt", H_base2gripper)
+        content = str(H_base2gripper)
+        file.write(content)
+        file.close()
 
 
 
