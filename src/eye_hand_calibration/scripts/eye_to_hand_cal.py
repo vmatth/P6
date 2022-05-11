@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+from pynput import keyboard
 import cv2 
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -36,12 +37,23 @@ class hand_eye:
 
         self.eef_link = self.group.get_end_effector_link()
 
-        #self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color", Image, self.callback)
+        self.nr = 0
 
-        r = self.get_rotation()
-        t = self.get_translation()
-        self.get_transformation_matrix(r, t)
 
+    def on_press(self, key):
+        try:
+            #print('special key pressed: {0}'.format(key))
+            #print("key: ", key)
+            #if key er enter
+            if key == key.ctrl_r:
+                print("Waiting for camera data")
+                camera_data = rospy.wait_for_message("/kinect2/hd/image_color", Image, timeout=None)
+                self.take_picture(camera_data)
+        except AttributeError:
+            print("error :((((")
+
+    def on_release(self, key):
+            return False
 
 
     def quaternion_rotation_matrix(self, r_gripper2base_quat):
@@ -107,22 +119,40 @@ class hand_eye:
     def get_transformation_matrix(self, R_base2gripper, t_base2gripper):
         H_base2gripper = np.hstack((R_base2gripper, t_base2gripper))
         print("Transformation Matrix: ", H_base2gripper)
-
-        file = open("pose_list.txt", "w+")
-        #np.savetxt("file1.txt", H_base2gripper)
-        content = str(H_base2gripper)
-        file.write(content)
-        file.close()
-
+        vector = [0, 0, 0, 1]
+        H_base2gripper = np.vstack((H_base2gripper, vector))
+        print("H-matrix: ", H_base2gripper)
+        file_name = "pose_list" + str(self.nr) + ".txt"
+        np.savetxt(file_name, H_base2gripper)
 
 
 
+    def take_picture(self, data):
+        #save picture here :)
+        image = self.bridge.imgmsg_to_cv2(data, "passthrough")
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        file_name = "image" + str(self.nr) + ".jpg"
+        cv2.imwrite(file_name, gray)
+        print("saving image!!!")
+
+        r = self.get_rotation()
+        t = self.get_translation()
+        self.get_transformation_matrix(r, t)
+
+        #save matrix 
+
+        self.nr = self.nr + 1
 
 def main():
     #lav en instance af klassen
     he = hand_eye()
 
-    rospy.spin()    
+    while not rospy.is_shutdown():
+        with keyboard.Listener(
+            on_press=he.on_press,
+            on_release=he.on_release) as listener:
+            listener.join()   
 
 
 if __name__ == '__main__':

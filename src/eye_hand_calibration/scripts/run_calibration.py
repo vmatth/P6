@@ -11,22 +11,45 @@ import sys
 import glob
 from PIL import Image
 import cv2
+import io 
+import os
 
 
+#Load pictures
 img_list = []
 counter = 0
-for filename in glob.glob('*'):
+for filename in glob.glob('image_list.dump/*'):
     #Load image in opencv2
-    filename = "image" + str(counter) + ".jpg"
+    filename = "image_list.dump/image" + str(counter) + ".jpg"
+    print(filename)
     img = cv2.imread(filename)
     counter = counter + 1
     #convert her
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_list.append(gray)
 
+print("Loaded " + str(len(img_list)) + " pictures")
+
+rob_pose_list = []
+counter = 0
+for filename in glob.glob('pose_list.dump/*'):
+    filename = "pose_list.dump/pose_list" + str(counter) + ".txt"
+    print(filename)
+    matrix = np.loadtxt(filename, usecols=range(4))
+    counter = counter + 1
+    rob_pose_list.append(matrix)
+    
+print("rob_pose_list ", rob_pose_list)
+
+
+# for path in glob.glob(os.path.join('pose_list.dump', "pose_list*.txt")):
+#     with io.open(path, mode="r", encoding="utf-8") as fd:
+#         content = fd.read()
+
 corner_list = []
 obj_pose_list = []
 
+#Calibrate camera using images
 camera_matrix, dist_coeffs = chessboard.calibrate_lens(img_list)
 
 def hat(v):
@@ -40,6 +63,7 @@ def tf_mat(r, t):
     res[0:3, -1] = t
     return res
 
+#Camera to checkerboard
 for i, img in enumerate(img_list):
     found, corners = chessboard.find_corners(np.asarray(img))
     corner_list.append(corners)
@@ -48,6 +72,7 @@ for i, img in enumerate(img_list):
     rvec, tvec = chessboard.get_object_pose(chessboard.pattern_points, corners, camera_matrix, dist_coeffs)
     object_pose = tf_mat(rvec, tvec)
     obj_pose_list.append(object_pose)
+
 
 A, B = [], []
 for i in range(1,len(img_list)):

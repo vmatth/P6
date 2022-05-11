@@ -23,13 +23,14 @@ def draw_corners(image, corners):
 
 def get_object_pose(object_points, image_points, camera_matrix, dist_coeffs):
     ret, rvec, tvec = cv2.solvePnP(object_points, image_points, camera_matrix, dist_coeffs)
+    #print("Get object pose WORKS!!!!!!!!!!!!!!!!!!!!1")
     return rvec.flatten(), tvec.flatten()
 
 def calibrate_lens(image_list):
+    print("Calibrating lens")
     #print("list: ", image_list)
     img_points, obj_points = [], []
     h,w = 0, 0
-    counter = 0
     for img in image_list:
         #Process image
         h, w = img.shape[:2]
