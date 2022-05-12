@@ -103,18 +103,16 @@ class hand_eye:
         # print("R_Gripper2Base Quat", r_gripper2base_quat)
         # Returns R_gripper2base
         return self.quaternion_rotation_matrix(r_gripper2base_quat)
-        
-
+    
     def get_translation(self):
         print("hi vinini")
         t_base2gripper = self.group.get_current_pose().pose.position
-        #t_gripper2base = inv(t_base2grippers)
-        #print("t_gripper2base")
+        #t_gripper2base = inv(t_base2gripper)
+        print("t_gripper2base")
         #return t_gripper2base
         t = np.array([[t_base2gripper.x, t_base2gripper.y, t_base2gripper.z]]).T
         print("translation ", t)
         return t
-
 
     def get_transformation_matrix(self, R_base2gripper, t_base2gripper):
         H_base2gripper = np.hstack((R_base2gripper, t_base2gripper))
@@ -124,8 +122,6 @@ class hand_eye:
         print("H-matrix: ", H_base2gripper)
         file_name = "pose_list" + str(self.nr) + ".txt"
         np.savetxt(file_name, H_base2gripper)
-
-
 
     def take_picture(self, data):
         #save picture here :)

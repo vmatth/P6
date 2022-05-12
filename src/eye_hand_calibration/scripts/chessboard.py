@@ -23,8 +23,16 @@ def draw_corners(image, corners):
 
 def get_object_pose(object_points, image_points, camera_matrix, dist_coeffs):
     ret, rvec, tvec = cv2.solvePnP(object_points, image_points, camera_matrix, dist_coeffs)
-    #print("Get object pose WORKS!!!!!!!!!!!!!!!!!!!!1")
     return rvec.flatten(), tvec.flatten()
+
+def matrix_from_rtvec(rvec, tvec):
+    (R, jac) = cv2.Rodrigues(rvec) # ignore the jacobian
+    M = np.eye(4)
+    M[0:3, 0:3] = R
+    M[0:3, 3] = tvec.squeeze() # 1-D vector, row vector, column vector, whatever
+    return M
+
+
 
 def calibrate_lens(image_list):
     print("Calibrating lens")

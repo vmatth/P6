@@ -205,7 +205,7 @@ class depth_dectect:
                             #   |    \
                             #   ------ (XY)
                             #      b
-                            XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
+                            XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1, True)
                             a = self.cam_height_principle_point 
                             b = XYZ[1] * 1000 #m to mm (X coordinate: [0], Y coordinate : [1])
                             #calculate c
@@ -223,7 +223,7 @@ class depth_dectect:
                             print("Parcel height [cm]", height)
                             print("Parcel angle ", angle)
 
-                            XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
+                            XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1, True)
                             #print("XYZ", XYZ[0])
 
                             #todo: lav om til hand eye cal
@@ -268,11 +268,19 @@ class depth_dectect:
         
         self.pub.publish(msg)
 
-    def calculate_XYZ(self, u, v, z):
+    #Calcualtes world coordinates from pixel u,v.
+    #useCameraParameters = True calculates with respect to the camera frame
+    #useCameraParameters = False calculates with respect to robot frame
+    def calculate_XYZ(self, u, v, z, useCameraParameters):
         s = 1
-        A = np.matrix([[1.0663355230063235*10**3, 0., 9.4913144897241432*10**2], [0, 1.0676521964588569*10**3, 5.3505238717783232*10**2], [0., 0., 1.]])
-        R = np.matrix([[9.9988107827826278e-01, -5.9309422117523802e-04,-1.5410306302711205e-02],[6.1924030152182927e-04, 9.9999837692924043e-01, 1.6919457242115465e-03], [1.5409277807462079e-02, -1.7012871978343688e-03, 9.9987982266836595e-01]])
-        t = np.array([[-4.0874634519709227e-02, 1.3982841913969224e-04, 2.7999300285299357e-03]])
+        if useCameraParameters == True:
+            A = np.matrix([[1.0663355230063235*10**3, 0., 9.4913144897241432*10**2], [0, 1.0676521964588569*10**3, 5.3505238717783232*10**2], [0., 0., 1.]])
+            R = np.matrix([[9.9988107827826278e-01, -5.9309422117523802e-04,-1.5410306302711205e-02],[6.1924030152182927e-04, 9.9999837692924043e-01, 1.6919457242115465e-03], [1.5409277807462079e-02, -1.7012871978343688e-03, 9.9987982266836595e-01]])
+            t = np.array([[-4.0874634519709227e-02, 1.3982841913969224e-04, 2.7999300285299357e-03]])
+        else:
+            A = np.matrix([[1074.9760449625007, 0.0, 942.3422637341752],[0.0, 1076.3234090343599, 547.6692991121764],[0.0, 0.0, 1.0]])
+            R = np.matrix([[0.3612230776829304, -0.5023962943462235, 0.7855672164598351],[-0.9323741752837279, -0.18193834903950443, 0.312372909217122],[0.014010189622570522, 0.8452788892288526, 0.534141660995262]])
+            t = np.array([[-0.514179708366465, -0.5884362607503593, -0.21971415141519063]])
 
         # print("u,v,z", u, v, z)
         # print("A: ", A)

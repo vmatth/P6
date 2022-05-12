@@ -16,9 +16,9 @@ import math
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 
-class column_building:
+class floor_building:
     def __init__(self):
-        print("init column building")
+        print("init colum building")
 
         self.workspace_size = Point(0, 0, 0)
         self.height_map = [[]]
@@ -41,7 +41,7 @@ class column_building:
     def parcel_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Receiving data from /parcel_info %s", data)
         p = parcel(Point(0,0,0), data.size, data.centerpoint, data.angle)
-        self.start_column_building(p)
+        self.start_floor_building(p)
 
     def parcel_in_range(self, position, parcel):
             size_x = parcel.rounded_size.x
@@ -106,16 +106,17 @@ class column_building:
                 return False
             
 
-    def column_building_algorithm(self, _parcel):
+    def floor_building_algorithm(self, _parcel):
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
         xyzlist = []     
-        print("column building algorithm")
+        print("floor building algorithm")
 
 
         r = 0 #Times rotated
         original_parcel = parcel(Point(0,0,0), _parcel.actual_size, _parcel.start_position, _parcel.angle) #Copy the original parcel as _parcel will have performed many rotations by the end of this function
         h = _parcel.rounded_size.z
+        _non_rotated_size = _parcel.actual_size #Copy the original size, as the other sizes will be rotated by the end of this function
 
         for y in range(ws_y):
             for x in range(ws_x):
@@ -280,22 +281,23 @@ class column_building:
                 parcel_rotation = 90
 
                 
-            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, original_parcel.actual_size, original_parcel.rounded_size, picking_side, parcel_rotation, original_parcel.angle)
+            self.packing_pub(Point(temp[0], temp[1], temp[2]), original_parcel.start_position, original_parcel.actual_size, original_parcel.rounded_size, picking_side, parcel_rotation, original_parcel.angle, _non_rotated_size)
 
         elif len(xyzlist) <= 0:
             return False
 
 
-    def start_column_building(self, parcel):
-        if self.column_building_algorithm(parcel) == False:
+    def start_floor_building(self, parcel):
+        if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
             rospy.sleep(999)
         
-    def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle):
+    def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()
 
         msg.actual_size = actual_size
         msg.rounded_size = rounded_size
+        msg.non_rotated_size = non_rotated_size
         msg.end_pos = end_pos
         msg.start_pos = start_pos 
         msg.picking_side = picking_side
@@ -311,8 +313,8 @@ class column_building:
 
 
 def main():
-    rospy.init_node('column_building_algorithm', anonymous=True)
-    cb =  column_building() #Create a new instance of the first fit class
+    rospy.init_node('colum_building', anonymous=True)
+    fb =  floor_building() #Create a new instance of the first fit class
     #spin
     rospy.spin()
 
