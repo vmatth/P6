@@ -34,9 +34,38 @@ def packing_pub(size):
     print("Publishing to /vision/parcel")
 
 def add_parcel(data):
-    rospy.loginfo(rospy.get_caller_id() + "Workspace received new parcel %s", data)
-    rospy.sleep(1)
-    packing_pub(Point(random.randrange(3,7),random.randrange(3,7), random.randrange(3,7)))
+    # contraints:
+    # min: 14x9x8 cm ==> 14+((9+8)*2) = 48
+    # max: length 150 cm 
+    # max: length + circumfence 300 cm     150+(37,5+37,5)*2 = 300
+    rospy.sleep(0.1)
+    ###############################
+    ##Change parcel randomizer here
+    ##Options are dao() or postnord()
+    dao()
+    ###############################
+
+def dao():
+    x = random.randrange(15, 80)
+    print("x: ", x)
+    circumfence = random.randrange(48, 240-x)
+    print("circumfence: ", circumfence)
+    y = random.randrange(10,(circumfence-8)/2)
+    print("y: ", y)
+    z = (circumfence - y)/2
+    print("z: ", z)
+    packing_pub(Point(x,y,z))
+
+def postnord():
+    x = random.randrange(14, 150)
+    print("x: ", x)
+    circumfence = random.randrange(48, 300-x)
+    print("circumfence: ", circumfence)
+    y = random.randrange(9,(circumfence-8)/2)
+    print("y: ", y)
+    z = (circumfence - y)/2
+    print("z: ", z)
+    packing_pub(Point(x,y,z))
 
 pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
 def main():
@@ -45,7 +74,7 @@ def main():
     sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel)
     pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
     rospy.sleep(2)
-    packing_pub(Point(random.randrange(3,7),random.randrange(3,7), random.randrange(3,7)))
+    add_parcel(None)
     #generate_parcels(pub)
     rospy.spin()
 

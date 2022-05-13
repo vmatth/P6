@@ -39,6 +39,7 @@ class workspace:
         
     #Workspace is updated each time a new parcel is added.
     def update_workspace(self):
+        #Publish to workspace/info
         msg = Workspace()
         msg.size = self.workspace_size
         msg.center_position = self.center_position
@@ -50,30 +51,50 @@ class workspace:
         msg.parcels = self.parcels
         self.pub.publish(msg)
 
+        #Calculate Volume
         parcelsV = []
+        height_parcel_list = []
+        length_parcel_list = []
+        width_parcel_list = []
         for i in range(len(self.parcels)):
             parcel_volume = self.parcels[i].rounded_size.x * self.parcels[i].rounded_size.y * self.parcels[i].rounded_size.z 
             parcelsV.append(parcel_volume)
-        
+            height_of_parcels = self.parcels[i].end_pos.z + self.parcels[i].rounded_size.z
+            height_parcel_list.append(height_of_parcels)
+            lenght_of_parcels = self.parcels[i].end_pos.x + self.parcels[i].rounded_size.x
+            length_parcel_list.append(lenght_of_parcels)
+            width_of_parcels = self.parcels[i].end_pos.y + self.parcels[i].rounded_size.y
+            width_parcel_list.append(width_of_parcels)
+
+        c_workspace_height = 0
+        c_workspace_length = 0
+        c_workspace_width = 0
+        if len(height_parcel_list) > 0:    
+            c_workspace_height = max(height_parcel_list)
+            c_workspace_length = max(length_parcel_list)
+            c_workspace_width = max(width_parcel_list)
+            #print("c_workspace_height: ", c_workspace_height)
+        print("-----------------------------------------------------")
         #print("Parcel_volume: ", parcel_volume)
         #print("list of volumes: ", parcelsV)
         parcels_combined_volume = sum(parcelsV)
-        print("Combined Volume: ", parcels_combined_volume)
+        #print("Combined Volume: ", parcels_combined_volume)
         v_workspace = self.workspace_size.x * self.workspace_size.y * self.workspace_size.z
         print("Workspace Volume: ", v_workspace)
         if parcels_combined_volume > 0:
             fill_rate = int(parcels_combined_volume / v_workspace  * 100)
             print("fill_rate: ", fill_rate, "%")
             num_parcels = len(parcelsV)
+            
+        #Calculate Compactness
+        c_workspace = c_workspace_length * c_workspace_width * c_workspace_height
+        print("C_workspace: ", c_workspace)
+        if parcels_combined_volume > 0:
+            compactness = int(parcels_combined_volume / c_workspace * 100)
+            print("compactness: ", compactness, "%")
             print("Parcel nr.: ", num_parcels)
-
-        #loop all parcels
-            #calculate volume for each parcel
-            #add the volumes together
-        #find volume
-            #calculate the workspace volume
-
-        #calculate fill-rate V_parcels/V_workspace *100
+        print("-----------------------------------------------------")
+        # pakkens z position plus pakkens height 
 
     def heightmap_callback(self, data):
         print("Height map updated with size: ", data.size)
@@ -93,9 +114,9 @@ def main():
     y = rospy.get_param("~size_y", 60)
     z = rospy.get_param("~size_z", 30)
     #For testing
-    # x = rospy.get_param("~size_x", 30)
-    # y = rospy.get_param("~size_y", 22)
-    # z = rospy.get_param("~size_z", 50)
+    x = rospy.get_param("~size_x", 120)
+    y = rospy.get_param("~size_y", 75)
+    z = rospy.get_param("~size_z", 170)
 
     #pos in m
     center_pos_x = rospy.get_param("~center_pos_x", 0)

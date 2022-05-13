@@ -23,7 +23,7 @@ class first_fit:
 
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
         
-        rospy.Subscriber("/parcel_info", Parcel, self.parcel_callback)
+        rospy.Subscriber("/vision/parcel", Parcel, self.parcel_callback)
 
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
     
@@ -42,9 +42,9 @@ class first_fit:
 
     #Returns if the parcel is in the workspace bounds at (x,y) position
     def parcel_in_range(self, position, parcel):
-        size_x = parcel.size.x
-        size_y = parcel.size.y
-        size_z = parcel.size.z
+        size_x = parcel.rounded_size.x
+        size_y = parcel.rounded_size.y
+        size_z = parcel.rounded_size.z
         pos_x = position.x
         pos_y = position.y
         pos_z = position.z
@@ -66,8 +66,8 @@ class first_fit:
 
     #Returns if the parcel is supported at (x,y) position
     def bottom_supported(self, position, parcel):
-        size_x = int(parcel.size.x)
-        size_y = int(parcel.size.y)
+        size_x = int(parcel.rounded_size.x)
+        size_y = int(parcel.rounded_size.y)
         pos_x = int(position.x)
         pos_y = int(position.y)
 
@@ -108,7 +108,7 @@ class first_fit:
         # elif corner_pixels in  and bottom_area_supported >= 80:
         #     return True
 
-    def first_fit_algorithm(self, parcel):
+    def first_fit_algorithm(self, parcel, picking_side, parcel_rotation, non_rotated_size):
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
 
@@ -125,33 +125,39 @@ class first_fit:
                     #print("supported: ", supported, " at: ", Point(x,y,z))
                     if supported is True:
                         #Publish to a ros topic
-                        self.packing_pub(Point(x, y, z), parcel.size, parcel.start_position)
+                        self.packing_pub(Point(x, y, z), parcel.start_position, parcel.actual_size, parcel.rounded_size, picking_side, parcel_rotation, parcel.angle, non_rotated_size)
                         return (x,y,z) #Return x,y coordinate for parcel
             
         return False
 
     #Goes through all the different rotations for the package
     def start_first_fit(self, p):
-        if self.first_fit_algorithm(p) == False:
+        non_rotated_size = p.actual_size
+        if self.first_fit_algorithm(p, 1, 0, non_rotated_size) == False:
             p.rotate_parcel('z')
-            if self.first_fit_algorithm(p) == False:       
+            if self.first_fit_algorithm(p, 1, 90, non_rotated_size) == False:       
                 p.rotate_parcel('y')
-                if self.first_fit_algorithm(p) == False:       
+                if self.first_fit_algorithm(p, 2, 0, non_rotated_size) == False:       
                     p.rotate_parcel('z')
-                    if self.first_fit_algorithm(p) == False:       
+                    if self.first_fit_algorithm(p, 2, 90, non_rotated_size) == False:       
                         p.rotate_parcel('y')
-                        if self.first_fit_algorithm(p) == False:       
+                        if self.first_fit_algorithm(p, 3, 0, non_rotated_size) == False:       
                             p.rotate_parcel('z')
-                            if self.first_fit_algorithm(p) == False:       
+                            if self.first_fit_algorithm(p, 3, 90, non_rotated_size) == False:       
                                 print("Parcel cannot be packed into the roller cage")
                                 rospy.sleep(999)
 
-    def packing_pub(self, end_pos, size, start_pos):
+    def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()
 
-        msg.size = size
+        msg.actual_size = actual_size
+        msg.rounded_size = rounded_size
+        msg.non_rotated_size = non_rotated_size
         msg.end_pos = end_pos
         msg.start_pos = start_pos 
+        msg.picking_side = picking_side
+        msg.parcel_rotation = parcel_rotation
+        msg.angle = angle
 
 
         print(msg)
