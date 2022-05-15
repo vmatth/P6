@@ -153,7 +153,7 @@ for i in range(len(R_gripper2base_list)):
     print("t_target2cam ", t_target2cam_list[i])
 
     #Output is cam2gripper
-    R, t = cv2.calibrateHandEye(R_gripper2base_list[i], t_gripper2base_list[i], R_target2cam_list[i], t_target2cam_list[i], method=cv2.CALIB_HAND_EYE_TSAI)
+    R, t = cv2.calibrateHandEye(R_gripper2base_list, t_gripper2base_list, R_target2cam_list, t_target2cam_list, method=cv2.CALIB_HAND_EYE_TSAI)
     print("OUTPUT")
     print("R", R)
     print("t", t)

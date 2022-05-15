@@ -69,7 +69,7 @@ def postnord():
 
 pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
 def main():
-    random.seed(15)
+    random.seed(30)
     rospy.init_node('send_parcels', anonymous=True)
     sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel)
     pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
