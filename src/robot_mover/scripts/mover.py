@@ -78,8 +78,10 @@ class mover:
         workspace_pose.pose.position.y = data.center_position.y
         workspace_pose.pose.position.z = data.center_position.z - 0.01 #Minus a small distance as this is defined in center points.
         workspace_name = "workspace"
-        self.scene.add_box(workspace_name, workspace_pose, size=(data.size.y/100, data.size.x/100, 0.001))    
-        #self.validate_workspace_boundaries() #todo only do once 
+        workspace_size = (data.size.y/100, data.size.x/100, 0.001)
+        self.scene.add_box(workspace_name, workspace_pose, size=workspace_size)    
+        #self.validate_workspace_boundaries() #todo only do once
+        self.add_walls(workspace_pose, Point(workspace_size[0], workspace_size[1], workspace_size[2]))
 
 
     #Defines the environment in rviz for moveit trajectory calculations
@@ -112,11 +114,59 @@ class mover:
         backboard_name = "backboard"
         self.scene.add_box(backboard_name, backboard_pose, size=(0.41, 0.05, 1.06))
 
+        camholder_pose = geometry_msgs.msg.PoseStamped()
+        camholder_pose.header.frame_id = "base_link"
+        camholder_pose.pose.orientation.w = 1.0
+        camholder_pose.pose.position.x = 0.0    
+        camholder_pose.pose.position.y = -0.7
+        camholder_pose.pose.position.z = 0.99
+        calholder_name = "camera_holder"
+        self.scene.add_box(calholder_name, camholder_pose, size=(0.03, 0.25, 0.03))
+
+        camera_pose = geometry_msgs.msg.PoseStamped()
+        camera_pose.header.frame_id = "base_link"
+        camera_pose.pose.orientation.w = 1.0
+        camera_pose.pose.position.x = 0.0    
+        camera_pose.pose.position.y = -0.608
+        camera_pose.pose.position.z = 0.9415
+        camera_name = "camera"
+        self.scene.add_box(camera_name, camera_pose, size=(0.249, 0.066, 0.067))
+
         self.scene.remove_attached_object(self.eef_link, name="parcel")
         self.scene.remove_world_object("parcel")
 
-    def add_walls(self):
+    def add_walls(self, workspace_pose, workspace_size):
         print("Adding walls")
+        wall_thickness = 0.01
+        wall_height = 0.8
+
+
+        wall_pose = geometry_msgs.msg.PoseStamped()
+        wall_pose.header.frame_id = "base_link"
+        wall_pose.pose.orientation.w = 1.0
+        wall_pose.pose.position.x = workspace_pose.pose.position.x
+        wall_pose.pose.position.y = workspace_pose.pose.position.y + (workspace_size.y/2) + (wall_thickness/2)
+        wall_pose.pose.position.z = workspace_pose.pose.position.z + (wall_height/2)
+        wall_name = "wall_0"
+        self.scene.add_box(wall_name, wall_pose, size=(workspace_size.x, wall_thickness, wall_height))    
+
+        wall_pose = geometry_msgs.msg.PoseStamped()
+        wall_pose.header.frame_id = "base_link"
+        wall_pose.pose.orientation.w = 1.0
+        wall_pose.pose.position.x = workspace_pose.pose.position.x + (workspace_size.x/2) + (wall_thickness/2)
+        wall_pose.pose.position.y = workspace_pose.pose.position.y
+        wall_pose.pose.position.z = workspace_pose.pose.position.z + (wall_height/2)
+        wall_name = "wall_1"
+        self.scene.add_box(wall_name, wall_pose, size=(wall_thickness, workspace_size.y, wall_height))      
+
+        wall_pose = geometry_msgs.msg.PoseStamped()
+        wall_pose.header.frame_id = "base_link"
+        wall_pose.pose.orientation.w = 1.0
+        wall_pose.pose.position.x = workspace_pose.pose.position.x - (workspace_size.x/2) - (wall_thickness/2)
+        wall_pose.pose.position.y = workspace_pose.pose.position.y
+        wall_pose.pose.position.z = workspace_pose.pose.position.z + (wall_height/2)
+        wall_name = "wall_2"
+        self.scene.add_box(wall_name, wall_pose, size=(wall_thickness, workspace_size.y, wall_height))     
 
     #This function is the callback function when receiving a new packing info from the packing algorithm
     #Adds the parcel to rviz and calls another function that begins picking the added parcel

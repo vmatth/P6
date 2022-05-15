@@ -42,9 +42,15 @@ def add_parcel(data):
     ###############################
     ##Change parcel randomizer here
     ##Options are dao() or postnord()
-    dao()
+    #dao()
+    tiny()
     ###############################
 
+def tiny():
+    x = random.randrange(8, 12)
+    y = random.randrange(8, 12)
+    z = random.randrange(8, 12)
+    packing_pub(Point(x,y,z))
 def dao():
     x = random.randrange(15, 80)
     print("x: ", x)
@@ -71,7 +77,7 @@ pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
 def main():
     random.seed(30)
     rospy.init_node('send_parcels', anonymous=True)
-    sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel)
+    #sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel)
     pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
     rospy.sleep(2)
     add_parcel(None)
