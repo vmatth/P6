@@ -31,10 +31,15 @@ class depth_dectect:
         self.focal_length_x = 1.0663355230063235 * 10**3 #px
         self.focal_length_y = 1.0676521964588569 * 10**3 #px
         self.pixel_size = 0.0031 #mm/px
+        self.pixel_size_tof = 0.01
         self.sensor_width_mm = 5.952 #mm
+        self.sensor_width_tof_mm = 5.120
         self.sensor_length_mm = 3.348 #mm
+        self.sensor_length_tof_mm = 4.240
         self.sensor_width_px = 1920 #px 
+        self.sensor_width_tof_px = 512
         self.sensor_length_px = 1080 #px
+        self.sensor_length_tof_px = 424
 
         self.depth_list = []
         self.counter = 0
@@ -47,7 +52,7 @@ class depth_dectect:
             print('special key pressed: {0}'.format(key))
             #print("key: ", key)
             #if key er enter
-            if key == key.ctrl_r:
+            if key == key.space:
                 self.depth_data = rospy.wait_for_message("/kinect2/hd/image_depth_rect", Image, timeout=None)
                 self.thresholding(self.depth_data)
                 #print("saved data: ", self.depth_data)
@@ -118,6 +123,7 @@ class depth_dectect:
     def thresholding(self, depth_data):
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
+            uncropped_image = depth_image.copy()
             crop_min_y = 243
             crop_max_y = 785
             crop_min_x = 638
@@ -191,11 +197,24 @@ class depth_dectect:
 
                             object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
                             object_length_on_sensor = self.sensor_length_mm * object_length_pixels / self.sensor_length_px
+
+                            
                             # print("Bw: ", object_width_on_sensor)
                             # print("Bh: ", object_height_on_sensor)
                             # print("focal: ", self.focal_length*self.pixel_size)
                             width = (distance_to_parcel * object_width_on_sensor / (self.focal_length_x*self.pixel_size)) / 10.0
                             length = (distance_to_parcel * object_length_on_sensor / (self.focal_length_y*self.pixel_size)) / 10.0
+
+                        
+
+                            small_bw = 1/((1/(self.focal_length_x*self.pixel_size))-(1/float(distance_to_parcel)))
+                            #print("small_bw: ", small_bw)
+                            small_bh = 1/((1/(self.focal_length_y*self.pixel_size))-(1/float(distance_to_parcel)))
+                            #print("small_bh: ", small_bh)
+
+                            width_b = (distance_to_parcel * object_width_on_sensor / (small_bw)) / 10.0
+                            length_b = (distance_to_parcel * object_length_on_sensor / (small_bh)) / 10.0
+
 
                             #Calculate parcel height based on distance from centerpoint
                             # cam
@@ -220,6 +239,8 @@ class depth_dectect:
                             angle = rect[2]
                             print("Parcel width [cm]", width)
                             print("Parcel length [cm]", length)
+                            print("Parcel width_b [cm]", width_b)
+                            print("Parcel length_b [cm]", length_b)
                             print("Parcel height [cm]", height)
                             print("Parcel angle ", angle)
 
@@ -243,7 +264,7 @@ class depth_dectect:
             #cv2.circle(uncropped_image, (890, 535), 3, (10000, 10000, 10000), -1)
             #cv2.circle(converted_image, (890 - 638, 535 - 242), 3, (10000, 10000, 1000), -1)
 
-            #cv2.imshow("Uncropped Image (*16)", uncropped_image * 16)
+            cv2.imshow("Uncropped Image (*16)", uncropped_image * 16)
             cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
             cv2.imshow("Threshold Image (*16)", threshold_image * 16)
             cv2.imshow("8-bit Threshold Image", converted_image * 16)
