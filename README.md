@@ -1,7 +1,9 @@
 # P6 Robotics Bachelor Project
 
 Overview of the ROS nodes:
-<img src="src/nodes.png" width="100" height="100">
+
+<img src="src/nodes.png" width="500" height="500">
+
 ![alt text](src/nodes.png?raw=true "Nodes" width="100")
 
 This README explains how to build the workspace and run the nodes.
