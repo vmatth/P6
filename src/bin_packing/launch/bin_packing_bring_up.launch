@@ -1,5 +1,5 @@
 <launch>
-  <!-- <node name="rc_visualization" pkg="bin_packing" type="rc_visualization.py" output="log"></node> -->
+  <node name="rc_visualization" pkg="bin_packing" type="rc_visualization.py" output="log"></node>
   <node name="floor_building_algorithm" pkg="bin_packing" type="floor_building_algorithm.py" output="screen"></node>
   <!-- <node name="first_fit_algorithm" pkg="bin_packing" type="first_fit_algorithm.py" output="screen"></node> -->
   <!-- <node name="coloumn_building_algorithm" pkg="bin_packing" type="column_building_algorithm.py" output="screen"></node> -->

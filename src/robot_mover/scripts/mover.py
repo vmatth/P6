@@ -139,13 +139,14 @@ class mover:
         print("Adding walls")
         wall_thickness = 0.01
         wall_height = workspace_size.z
+        wall_tolerance = 0.01
 
 
         wall_pose = geometry_msgs.msg.PoseStamped()
         wall_pose.header.frame_id = "base_link"
         wall_pose.pose.orientation.w = 1.0
         wall_pose.pose.position.x = workspace_pose.pose.position.x
-        wall_pose.pose.position.y = workspace_pose.pose.position.y + (workspace_size.y/2) + (wall_thickness/2)
+        wall_pose.pose.position.y = workspace_pose.pose.position.y + (workspace_size.y/2) + (wall_thickness/2) + wall_tolerance
         wall_pose.pose.position.z = workspace_pose.pose.position.z + (wall_height/2)
         wall_name = "wall_0"
         self.scene.add_box(wall_name, wall_pose, size=(workspace_size.x, wall_thickness, wall_height))    
@@ -153,8 +154,8 @@ class mover:
         wall_pose = geometry_msgs.msg.PoseStamped()
         wall_pose.header.frame_id = "base_link"
         wall_pose.pose.orientation.w = 1.0
-        wall_pose.pose.position.x = workspace_pose.pose.position.x + (workspace_size.x/2) + (wall_thickness/2)
-        wall_pose.pose.position.y = workspace_pose.pose.position.y
+        wall_pose.pose.position.x = workspace_pose.pose.position.x + (workspace_size.x/2) + (wall_thickness/2) + wall_tolerance
+        wall_pose.pose.position.y = workspace_pose.pose.position.y + wall_tolerance
         wall_pose.pose.position.z = workspace_pose.pose.position.z + (wall_height/2)
         wall_name = "wall_1"
         self.scene.add_box(wall_name, wall_pose, size=(wall_thickness, workspace_size.y, wall_height))      
@@ -162,8 +163,8 @@ class mover:
         wall_pose = geometry_msgs.msg.PoseStamped()
         wall_pose.header.frame_id = "base_link"
         wall_pose.pose.orientation.w = 1.0
-        wall_pose.pose.position.x = workspace_pose.pose.position.x - (workspace_size.x/2) - (wall_thickness/2)
-        wall_pose.pose.position.y = workspace_pose.pose.position.y
+        wall_pose.pose.position.x = workspace_pose.pose.position.x - (workspace_size.x/2) - (wall_thickness/2) - wall_tolerance
+        wall_pose.pose.position.y = workspace_pose.pose.position.y + wall_tolerance
         wall_pose.pose.position.z = workspace_pose.pose.position.z + (wall_height/2)
         wall_name = "wall_2"
         self.scene.add_box(wall_name, wall_pose, size=(wall_thickness, workspace_size.y, wall_height))     
@@ -331,7 +332,14 @@ class mover:
     def clear_workspace(self):
         print("Clearing workspace")
         for i in range(10):
-            self.scene.remove_world_object("parcel" + str(i))
+            try:
+                self.scene.remove_attached_object(self.eef_link, name="parcel" + str(i))
+            except:
+                print(" ")
+            try:
+                self.scene.remove_world_object("parcel" + str(i))
+            except:
+                print(" ")
 
     #Connects the parcel to the moveit collision system in rviz
     def connect_parcel(self):
@@ -351,7 +359,6 @@ class mover:
     def detach_parcel(self):
         print("detaching parcel!")
         self.scene.remove_attached_object(self.eef_link, name="parcel" + str(self.parcels_packed))
-        self.scene.remove_world_object("parcel")
         if self.sim == False:
             set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
             set_io(fun = 1, pin = 0 ,state = 0)     

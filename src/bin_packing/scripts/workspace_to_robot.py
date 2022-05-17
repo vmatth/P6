@@ -14,6 +14,9 @@ class converter():
         rospy.Subscriber("/workspace/add_parcel", Packing_info, self.convert_frames)   
         self.pub = rospy.Publisher('/robot/pick_place', Packing_info, queue_size=10)
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
+        self.cage_x_displacement = 0
+        self.cage_y_displacement = 0
+        self.cage_z_displacement = 0
 
 
 
