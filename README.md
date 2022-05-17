@@ -5,8 +5,10 @@ Overview of the ROS nodes:
 <img src="src/nodes.png" width="500" height="850">
 
 
-This README explains how to build the workspace and run the nodes.
+The following explains how to build the workspace and run the nodes.
+
 ## Setup ROS Melodic
+
 On Ubuntu 18.04 download ROS Melodic 
 http://wiki.ros.org/melodic/Installation/Ubuntu
 
