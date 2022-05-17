@@ -132,6 +132,10 @@ sudo python setup.py install
 ```
 
 ## Running all the nodes
+Overview of the nodes:
+![alt text](https://github.com/vmatth/P6/src/nodes.png?raw=true)
+
+
 Run each command in a new terminal
 ### Bin packing nodes
 ```
