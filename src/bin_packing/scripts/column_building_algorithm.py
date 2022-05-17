@@ -23,7 +23,8 @@ class floor_building:
         self.workspace_size = Point(0, 0, 0)
         self.height_map = [[]]
         self.list = []
-        
+
+        self.workspace_pub = rospy.Publisher('/workspace/remove_parcels', Workspace, queue_size=10)
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
         #self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
         
@@ -110,7 +111,7 @@ class floor_building:
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
         xyzlist = []     
-        print("floor building algorithm")
+        print("column building algorithm")
 
 
         r = 0 #Times rotated
@@ -290,7 +291,11 @@ class floor_building:
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
-            rospy.sleep(999)
+            msg = Workspace()
+            #Save data to csv file
+            msg.save_data = True
+            msg.parcels_to_yeet = -1
+            self.workspace_pub.publish(msg)
         
     def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()

@@ -16,6 +16,7 @@ import math
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 
+
 class floor_building:
     def __init__(self):
         print("init floor building")
@@ -25,6 +26,7 @@ class floor_building:
         self.list = []
         
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
+        self.workspace_pub = rospy.Publisher('/workspace/remove_parcels', Workspace, queue_size=10)
         #self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
         
         rospy.Subscriber("/vision/parcel", Parcel, self.parcel_callback)
@@ -291,7 +293,11 @@ class floor_building:
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
-            rospy.sleep(999)
+            msg = Workspace()
+            #Save data to csv file
+            msg.save_data = True
+            msg.parcels_to_yeet = -1
+            self.workspace_pub.publish(msg)
         
     def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()

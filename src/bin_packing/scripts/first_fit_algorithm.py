@@ -22,7 +22,7 @@ class first_fit:
         self.height_map = [[]]
 
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
-        
+        self.workspace_pub = rospy.Publisher('/workspace/remove_parcels', Workspace, queue_size=10)
         rospy.Subscriber("/vision/parcel", Parcel, self.parcel_callback)
 
         rospy.Subscriber("/workspace/info", Workspace, self.workspace_callback)
@@ -91,13 +91,13 @@ class first_fit:
         #print("total: ", total_parcel_pixels)
         bottom_area_supported = supported_pixels/total_parcel_pixels * 100
         #print("Area supported: ", int(bottom_area_supported), "%")
-        if bottom_area_supported >= 95:
+        if bottom_area_supported >= 95: #default 95
             #print("95 percent stability requirement")
             return True
-        elif counter >= 3 and bottom_area_supported >= 80:
+        elif counter >= 3 and bottom_area_supported >= 80: #default 80
             #print("80 percent and 3 corners stability requirement")
             return True
-        elif counter == 4 and bottom_area_supported >= 60:
+        elif counter == 4 and bottom_area_supported >= 60: #default 60
             #print("60 percent and 4 corners stability requirement")
             return True 
         else:
@@ -145,7 +145,11 @@ class first_fit:
                             p.rotate_parcel('z')
                             if self.first_fit_algorithm(p, 3, 90, non_rotated_size) == False:       
                                 print("Parcel cannot be packed into the roller cage")
-                                rospy.sleep(999)
+                                msg = Workspace()
+                                #Save data to csv file
+                                msg.save_data = True
+                                msg.parcels_to_yeet = -1
+                                self.workspace_pub.publish(msg)
 
     def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()
