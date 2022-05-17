@@ -1,6 +1,14 @@
 # P6 Robotics Bachelor Project
-This README explains how to build the workspace and run the nodes.
+
+Overview of the ROS nodes:
+
+<img src="src/nodes.png" width="500" height="850">
+
+
+The following explains how to build the workspace and run the nodes.
+
 ## Setup ROS Melodic
+
 On Ubuntu 18.04 download ROS Melodic 
 http://wiki.ros.org/melodic/Installation/Ubuntu
 
@@ -132,15 +140,8 @@ sudo python setup.py install
 ```
 
 ## Running all the nodes
-Overview of the nodes:
-![alt text](https://github.com/vmatth/P6/src/nodes.png?raw=true)
-
 
 Run each command in a new terminal
-### Bin packing nodes
-```
-roslaunch bin_packing bin_packing_bring_up.launch 
-```
 ### Robot Nodes (Physical Robot)
 ```
 roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
@@ -166,6 +167,10 @@ roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_m
 ```
 ```
 rosrun robot_mover mover.py _sim:=True
+```
+### Bin packing nodes
+```
+roslaunch bin_packing bin_packing_bring_up.launch 
 ```
 ### Camera Nodes
 ```
