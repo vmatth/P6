@@ -157,7 +157,7 @@ class workspace:
         ##########################
         #########TESTING
         ##########################
-        if(self.seed == 200 + 1): ###Change this number for the amount of times to test
+        if(self.seed == 30 + 1): ###Change this number for the amount of times to test
             print("STOPPING TEST!!!")
             rospy.sleep(999999)
 
@@ -166,14 +166,14 @@ def main():
     #rosrun pkg node _x:=2 _y:5 _z:=10
     #size in cm
 
-    # #Size at UR5 setup
-    x = rospy.get_param("~size_x", 38)
-    y = rospy.get_param("~size_y", 60)
-    z = rospy.get_param("~size_z", 58)
+    # # #Size at UR5 setup
+    # x = rospy.get_param("~size_x", 38)
+    # y = rospy.get_param("~size_y", 60)
+    # z = rospy.get_param("~size_z", 58)
     #For testing
-    # x = rospy.get_param("~size_x", 120)
-    # y = rospy.get_param("~size_y", 75)
-    # z = rospy.get_param("~size_z", 170)
+    x = rospy.get_param("~size_x", 120)
+    y = rospy.get_param("~size_y", 75)
+    z = rospy.get_param("~size_z", 170)
 
     #pos in m
     center_pos_x = rospy.get_param("~center_pos_x", 0)
