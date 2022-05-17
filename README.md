@@ -142,10 +142,6 @@ sudo python setup.py install
 ## Running all the nodes
 
 Run each command in a new terminal
-### Bin packing nodes
-```
-roslaunch bin_packing bin_packing_bring_up.launch 
-```
 ### Robot Nodes (Physical Robot)
 ```
 roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=172.22.22.2 kinematics_config:=$(rospack find ur_calibration)/my_robot_calibration.yaml
@@ -171,6 +167,10 @@ roslaunch ur5_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5_m
 ```
 ```
 rosrun robot_mover mover.py _sim:=True
+```
+### Bin packing nodes
+```
+roslaunch bin_packing bin_packing_bring_up.launch 
 ```
 ### Camera Nodes
 ```
