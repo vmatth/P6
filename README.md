@@ -2,7 +2,7 @@
 
 Overview of the ROS nodes:
 
-<img src="src/nodes.png" width="500" height="700">
+<img src="src/nodes.png" width="500" height="850">
 
 
 This README explains how to build the workspace and run the nodes.
