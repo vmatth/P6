@@ -1,4 +1,8 @@
 # P6 Robotics Bachelor Project
+
+Overview of the ROS nodes:
+![alt text](src/nodes.png?raw=true "Nodes")
+
 This README explains how to build the workspace and run the nodes.
 ## Setup ROS Melodic
 On Ubuntu 18.04 download ROS Melodic 
@@ -132,9 +136,6 @@ sudo python setup.py install
 ```
 
 ## Running all the nodes
-Overview of the nodes:
-![alt text](P6/src/nodes.png?raw=true "Nodes")
-
 
 Run each command in a new terminal
 ### Bin packing nodes
