@@ -16,6 +16,7 @@ import math
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 
 
+
 class floor_building:
     def __init__(self):
         print("init floor building")
@@ -25,6 +26,7 @@ class floor_building:
         self.list = []
         
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
+        self.workspace_pub = rospy.Publisher('/workspace/remove_parcels', Workspace, queue_size=10)
         #self.pub = rospy.Publisher('/packing_info', Packing_info, queue_size=10)
         
         rospy.Subscriber("/vision/parcel", Parcel, self.parcel_callback)
@@ -117,6 +119,7 @@ class floor_building:
         original_parcel = parcel(Point(0,0,0), _parcel.actual_size, _parcel.start_position, _parcel.angle) #Copy the original parcel as _parcel will have performed many rotations by the end of this function
         h = _parcel.rounded_size.z
         _non_rotated_size = _parcel.actual_size #Copy the original size, as the other sizes will be rotated by the end of this function
+
 
         for y in range(ws_y):
             for x in range(ws_x):
@@ -221,12 +224,12 @@ class floor_building:
 
         #If any available packing positions were found
         if len(xyzlist) > 0:
-            temp = xyzlist[0]
+            temp = xyzlist[0] #List of all positions and orientations
             for i in range(len(xyzlist)):
                 #print("temppp, ", temp)
                 #print("xyzlist", xyzlist[i])
                 #print("temp[4]", temp[4], "xyzlist[4]", xyzlist[i][4]) 
-                if xyzlist[i][2] < temp[2]:
+                if xyzlist[i][2] < temp[2]: #Compare z (height)
                     temp = xyzlist[i]
                     #print("new temp ", temp)
                 elif xyzlist[i][4] < temp[4] and xyzlist[i][2] <= temp[2]:
@@ -290,7 +293,11 @@ class floor_building:
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
-            rospy.sleep(999)
+            msg = Workspace()
+            #Save data to csv file
+            msg.save_data = True
+            msg.parcels_to_yeet = -1
+            self.workspace_pub.publish(msg)
         
     def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()

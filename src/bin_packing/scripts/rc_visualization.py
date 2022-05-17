@@ -32,6 +32,7 @@ class packing_visualization:
     def workspace_callback(self, data):
         if self.has_initialized is False:
             return
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print("Receiving data from /workspace/info")
         plt.ion()
         # biggest_ax = data.size.x
@@ -60,6 +61,7 @@ class packing_visualization:
         positions = []
         sizes = []
         colors = []
+        print("parcel gang: ", len(data.parcels))
         for i in range(0, len(data.parcels)):
             positions.append((data.parcels[i].end_pos.x, data.parcels[i].end_pos.y, data.parcels[i].end_pos.z))
             sizes.append((data.parcels[i].actual_size.x, data.parcels[i].actual_size.y, data.parcels[i].actual_size.z))
@@ -70,6 +72,8 @@ class packing_visualization:
             del self.ax3d.collections[:]
             self.parcels = self.plotCubeAt2(positions,sizes,colors=colors, edgecolor="k")
             self.ax3d.add_collection3d(self.parcels) 
+        else:
+            del self.ax3d.collections[:]
 
         #Height map
         height_map = convertTo2DArray(data.height_map, True)

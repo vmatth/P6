@@ -16,13 +16,6 @@ from bin_packing.msg import Workspace #workspace msg
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 import random
 
-# def generate_parcels(pub):
-    
-
-#     for i in range(4): 
-#         rospy.sleep(1.5)
-
-
 def packing_pub(size):
     msg = Parcel()
 
@@ -40,11 +33,17 @@ def add_parcel(data):
     # max: length + circumfence 300 cm     150+(37,5+37,5)*2 = 300
     rospy.sleep(0.1)
     ###############################
+    sendle_parcel_generator()
     ##Change parcel randomizer here
     ##Options are dao() or postnord()
     #dao()
-    tiny()
+    #tiny()
     ###############################
+
+def sendle_parcel_generator():
+    list_of_parcels = [Point(10, 10, 10), Point(10,10,15), Point(10,10,20), Point(13,13,13), Point(15,15,10), Point(20,15,8), Point(23,15,8)]
+    element = random.randrange(0,7)
+    packing_pub(list_of_parcels[element])
 
 def tiny():
     x = random.randrange(8, 12)
@@ -73,15 +72,26 @@ def postnord():
     print("z: ", z)
     packing_pub(Point(x,y,z))
 
+
+def reset_workspace(data):
+    print("Workspace has been reset")
+    rospy.sleep(2)
+    global seed
+    seed = seed + 1
+    random.seed(seed)
+    add_parcel(None)
+
+seed = 1
+
 pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
 def main():
-    random.seed(30)
+    random.seed(seed)
     rospy.init_node('send_parcels', anonymous=True)
-    #sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel)
+    sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, add_parcel) #Runs in a loop to keep publishing new parcels
+    sub = rospy.Subscriber("/workspace/remove_parcels", Workspace, reset_workspace) #This is called when the workspace is reset. This function increases the random seed.
     pub = rospy.Publisher('/vision/parcel', Parcel, queue_size=10)
     rospy.sleep(2)
     add_parcel(None)
-    #generate_parcels(pub)
     rospy.spin()
 
 if __name__ == '__main__':
