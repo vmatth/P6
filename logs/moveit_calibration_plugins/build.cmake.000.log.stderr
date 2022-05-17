@@ -1,0 +1,5 @@
+[33m[1mCMake Warning[0m at /home/vini/P6/src/moveit_calibration/moveit_calibration_plugins/CMakeLists.txt:25 (message):
+  Your version of OpenCV (3.2) is known to have buggy ArUco pose detection!
+  Use a ChArUco target or upgrade OpenCV
+
+

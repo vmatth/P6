@@ -1,0 +1,5 @@
+Symlinking /home/vini/P6/devel/lib/libkinect2_bridge_nodelet.so
+Symlinking /home/vini/P6/devel/lib/kinect2_bridge/kinect2_bridge
+Symlinking /home/vini/P6/devel/lib/pkgconfig/kinect2_bridge.pc
+Symlinking /home/vini/P6/devel/share/kinect2_bridge/cmake/kinect2_bridgeConfig.cmake
+Symlinking /home/vini/P6/devel/share/kinect2_bridge/cmake/kinect2_bridgeConfig-version.cmake

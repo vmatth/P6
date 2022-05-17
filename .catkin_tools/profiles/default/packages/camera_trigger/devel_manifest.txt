@@ -1,0 +1,5 @@
+camera_trigger
+/home/vini/P6/devel/.private/camera_trigger/cmake.lock /home/vini/P6/devel/./cmake.lock
+/home/vini/P6/devel/.private/camera_trigger/lib/pkgconfig/camera_trigger.pc /home/vini/P6/devel/lib/pkgconfig/camera_trigger.pc
+/home/vini/P6/devel/.private/camera_trigger/share/camera_trigger/cmake/camera_triggerConfig-version.cmake /home/vini/P6/devel/share/camera_trigger/cmake/camera_triggerConfig-version.cmake
+/home/vini/P6/devel/.private/camera_trigger/share/camera_trigger/cmake/camera_triggerConfig.cmake /home/vini/P6/devel/share/camera_trigger/cmake/camera_triggerConfig.cmake

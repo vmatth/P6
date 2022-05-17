@@ -1,0 +1,4 @@
+Symlinking /home/vini/P6/devel/lib/pkgconfig/kinect2_calibration.pc
+Symlinking /home/vini/P6/devel/lib/kinect2_calibration/kinect2_calibration
+Symlinking /home/vini/P6/devel/share/kinect2_calibration/cmake/kinect2_calibrationConfig.cmake
+Symlinking /home/vini/P6/devel/share/kinect2_calibration/cmake/kinect2_calibrationConfig-version.cmake

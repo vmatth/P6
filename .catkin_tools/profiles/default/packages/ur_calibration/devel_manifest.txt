@@ -1,0 +1,6 @@
+Universal_Robots_ROS_Driver/ur_calibration
+/home/vini/P6/devel/.private/ur_calibration/cmake.lock /home/vini/P6/devel/./cmake.lock
+/home/vini/P6/devel/.private/ur_calibration/lib/pkgconfig/ur_calibration.pc /home/vini/P6/devel/lib/pkgconfig/ur_calibration.pc
+/home/vini/P6/devel/.private/ur_calibration/lib/ur_calibration/calibration_correction /home/vini/P6/devel/lib/ur_calibration/calibration_correction
+/home/vini/P6/devel/.private/ur_calibration/share/ur_calibration/cmake/ur_calibrationConfig.cmake /home/vini/P6/devel/share/ur_calibration/cmake/ur_calibrationConfig.cmake
+/home/vini/P6/devel/.private/ur_calibration/share/ur_calibration/cmake/ur_calibrationConfig-version.cmake /home/vini/P6/devel/share/ur_calibration/cmake/ur_calibrationConfig-version.cmake

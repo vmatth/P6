@@ -1,0 +1,8 @@
+Symlinking /home/vini/P6/devel/lib/libur_robot_driver_plugin.so
+Symlinking /home/vini/P6/devel/lib/liburcl_log_handler.so
+Symlinking /home/vini/P6/devel/lib/ur_robot_driver/robot_state_helper
+Symlinking /home/vini/P6/devel/lib/ur_robot_driver/ur_robot_driver_node
+Symlinking /home/vini/P6/devel/lib/ur_robot_driver/dashboard_client
+Symlinking /home/vini/P6/devel/lib/pkgconfig/ur_robot_driver.pc
+Symlinking /home/vini/P6/devel/share/ur_robot_driver/cmake/ur_robot_driverConfig.cmake
+Symlinking /home/vini/P6/devel/share/ur_robot_driver/cmake/ur_robot_driverConfig-version.cmake

@@ -1,0 +1,12 @@
+fmauch_universal_robot/ur_kinematics
+/home/vini/P6/devel/.private/ur_kinematics/cmake.lock /home/vini/P6/devel/./cmake.lock
+/home/vini/P6/devel/.private/ur_kinematics/lib/libur3_kin.so /home/vini/P6/devel/lib/libur3_kin.so
+/home/vini/P6/devel/.private/ur_kinematics/lib/libur5_moveit_plugin.so /home/vini/P6/devel/lib/libur5_moveit_plugin.so
+/home/vini/P6/devel/.private/ur_kinematics/lib/libur5_kin.so /home/vini/P6/devel/lib/libur5_kin.so
+/home/vini/P6/devel/.private/ur_kinematics/lib/libur10_kin.so /home/vini/P6/devel/lib/libur10_kin.so
+/home/vini/P6/devel/.private/ur_kinematics/lib/libur10_moveit_plugin.so /home/vini/P6/devel/lib/libur10_moveit_plugin.so
+/home/vini/P6/devel/.private/ur_kinematics/lib/libur3_moveit_plugin.so /home/vini/P6/devel/lib/libur3_moveit_plugin.so
+/home/vini/P6/devel/.private/ur_kinematics/lib/python2.7/dist-packages/ur_kinematics/__init__.py /home/vini/P6/devel/lib/python2.7/dist-packages/ur_kinematics/__init__.py
+/home/vini/P6/devel/.private/ur_kinematics/lib/pkgconfig/ur_kinematics.pc /home/vini/P6/devel/lib/pkgconfig/ur_kinematics.pc
+/home/vini/P6/devel/.private/ur_kinematics/share/ur_kinematics/cmake/ur_kinematicsConfig-version.cmake /home/vini/P6/devel/share/ur_kinematics/cmake/ur_kinematicsConfig-version.cmake
+/home/vini/P6/devel/.private/ur_kinematics/share/ur_kinematics/cmake/ur_kinematicsConfig.cmake /home/vini/P6/devel/share/ur_kinematics/cmake/ur_kinematicsConfig.cmake

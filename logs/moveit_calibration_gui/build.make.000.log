@@ -1,0 +1,42 @@
+[35m[1mScanning dependencies of target moveit_handeye_calibration_rviz_plugin_core_autogen[0m
+[  8%] [34m[1mAutomatic MOC for target moveit_handeye_calibration_rviz_plugin_core[0m
+[  8%] Built target moveit_handeye_calibration_rviz_plugin_core_autogen
+[35m[1mScanning dependencies of target moveit_handeye_calibration_rviz_plugin_core[0m
+[ 16%] [32mBuilding CXX object handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_calibration_display.cpp.o[0m
+[ 25%] [32mBuilding CXX object handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_calibration_frame.cpp.o[0m
+[ 33%] [32mBuilding CXX object handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_control_widget.cpp.o[0m
+[ 41%] [32mBuilding CXX object handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_target_widget.cpp.o[0m
+[ 50%] [32mBuilding CXX object handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_context_widget.cpp.o[0m
+[ 58%] [32mBuilding CXX object handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/moveit_handeye_calibration_rviz_plugin_core_autogen/mocs_compilation.cpp.o[0m
+[01m[K/home/vini/P6/src/moveit_calibration/moveit_calibration_gui/handeye_calibration_rviz_plugin/src/handeye_context_widget.cpp:[m[K In member function ‘[01m[Kvoid moveit_rviz_plugin::ContextTabWidget::updateAllMarkers()[m[K’:
+[01m[K/home/vini/P6/src/moveit_calibration/moveit_calibration_gui/handeye_calibration_rviz_plugin/src/handeye_context_widget.cpp:304:16:[m[K [01;31m[Kerror: [m[K‘[01m[Kclass rviz_visual_tools::TFVisualTools[m[K’ has no member named ‘[01m[KclearAllTransforms[m[K’; did you mean ‘[01m[KpublishAllTransforms[m[K’?
+     tf_tools_->[01;31m[KclearAllTransforms[m[K();
+                [01;31m[K^~~~~~~~~~~~~~~~~~[m[K
+                [32m[KpublishAllTransforms[m[K
+[01m[K/home/vini/P6/src/moveit_calibration/moveit_calibration_gui/handeye_calibration_rviz_plugin/src/handeye_context_widget.cpp:354:81:[m[K [01;31m[Kerror: [m[Kno matching function for call to ‘[01m[Kmoveit_visual_tools::MoveItVisualTools::publishMesh(Eigen::Isometry3d&, shape_msgs::Mesh&, rviz_visual_tools::colors, double, const char [4], int)[m[K’
+           visual_tools_->publishMesh(fov_pose_, mesh, rvt::YELLOW, 1.0, "fov", 1[01;31m[K)[m[K;
+                                                                                 [01;31m[K^[m[K
+In file included from [01m[K/home/vini/P6/src/moveit_calibration/moveit_calibration_gui/handeye_calibration_rviz_plugin/include/moveit/handeye_calibration_rviz_plugin/handeye_context_widget.h:57:0[m[K,
+                 from [01m[K/home/vini/P6/src/moveit_calibration/moveit_calibration_gui/handeye_calibration_rviz_plugin/src/handeye_context_widget.cpp:37[m[K:
+[01m[K/home/vini/P6/src/rviz_visual_tools/include/rviz_visual_tools/rviz_visual_tools.h:829:8:[m[K [01;36m[Knote: [m[Kcandidate: bool rviz_visual_tools::RvizVisualTools::publishMesh(const Isometry3d&, const string&, rviz_visual_tools::colors, double, const string&, std::size_t)
+   bool [01;36m[KpublishMesh[m[K(const Eigen::Isometry3d& pose, const std::string& file_name, colors color = CLEAR, double scale = 1,
+        [01;36m[K^~~~~~~~~~~[m[K
+[01m[K/home/vini/P6/src/rviz_visual_tools/include/rviz_visual_tools/rviz_visual_tools.h:829:8:[m[K [01;36m[Knote: [m[K  no known conversion for argument 2 from ‘[01m[Kshape_msgs::Mesh {aka shape_msgs::Mesh_<std::allocator<void> >}[m[K’ to ‘[01m[Kconst string& {aka const std::__cxx11::basic_string<char>&}[m[K’
+[01m[K/home/vini/P6/src/rviz_visual_tools/include/rviz_visual_tools/rviz_visual_tools.h:831:8:[m[K [01;36m[Knote: [m[Kcandidate: bool rviz_visual_tools::RvizVisualTools::publishMesh(const Pose&, const string&, rviz_visual_tools::colors, double, const string&, std::size_t)
+   bool [01;36m[KpublishMesh[m[K(const geometry_msgs::Pose& pose, const std::string& file_name, colors color = CLEAR,
+        [01;36m[K^~~~~~~~~~~[m[K
+[01m[K/home/vini/P6/src/rviz_visual_tools/include/rviz_visual_tools/rviz_visual_tools.h:831:8:[m[K [01;36m[Knote: [m[K  no known conversion for argument 1 from ‘[01m[KEigen::Isometry3d {aka Eigen::Transform<double, 3, 1>}[m[K’ to ‘[01m[Kconst Pose& {aka const geometry_msgs::Pose_<std::allocator<void> >&}[m[K’
+[01m[K/home/vini/P6/src/moveit_calibration/moveit_calibration_gui/handeye_calibration_rviz_plugin/src/handeye_control_widget.cpp:[m[K In member function ‘[01m[Kbool moveit_rviz_plugin::ControlTabWidget::solveCameraRobotPose()[m[K’:
+[01m[K/home/vini/P6/src/moveit_calibration/moveit_calibration_gui/handeye_calibration_rviz_plugin/src/handeye_control_widget.cpp:421:20:[m[K [01;31m[Kerror: [m[K‘[01m[Kclass rviz_visual_tools::TFVisualTools[m[K’ has no member named ‘[01m[KclearAllTransforms[m[K’; did you mean ‘[01m[KpublishAllTransforms[m[K’?
+         tf_tools_->[01;31m[KclearAllTransforms[m[K();
+                    [01;31m[K^~~~~~~~~~~~~~~~~~[m[K
+                    [32m[KpublishAllTransforms[m[K
+handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/build.make:134: recipe for target 'handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_context_widget.cpp.o' failed
+make[2]: *** [handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_context_widget.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/build.make:158: recipe for target 'handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_control_widget.cpp.o' failed
+make[2]: *** [handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/src/handeye_control_widget.cpp.o] Error 1
+CMakeFiles/Makefile2:4248: recipe for target 'handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/all' failed
+make[1]: *** [handeye_calibration_rviz_plugin/CMakeFiles/moveit_handeye_calibration_rviz_plugin_core.dir/all] Error 2
+Makefile:140: recipe for target 'all' failed
+make: *** [all] Error 2

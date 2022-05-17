@@ -1,0 +1,5 @@
+Linked: (/home/vini/P6/devel/.private/kinect2_bridge/lib/libkinect2_bridge_nodelet.so, /home/vini/P6/devel/lib/libkinect2_bridge_nodelet.so)
+Linked: (/home/vini/P6/devel/.private/kinect2_bridge/lib/kinect2_bridge/kinect2_bridge, /home/vini/P6/devel/lib/kinect2_bridge/kinect2_bridge)
+Linked: (/home/vini/P6/devel/.private/kinect2_bridge/lib/pkgconfig/kinect2_bridge.pc, /home/vini/P6/devel/lib/pkgconfig/kinect2_bridge.pc)
+Linked: (/home/vini/P6/devel/.private/kinect2_bridge/share/kinect2_bridge/cmake/kinect2_bridgeConfig.cmake, /home/vini/P6/devel/share/kinect2_bridge/cmake/kinect2_bridgeConfig.cmake)
+Linked: (/home/vini/P6/devel/.private/kinect2_bridge/share/kinect2_bridge/cmake/kinect2_bridgeConfig-version.cmake, /home/vini/P6/devel/share/kinect2_bridge/cmake/kinect2_bridgeConfig-version.cmake)
