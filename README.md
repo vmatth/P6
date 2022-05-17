@@ -133,7 +133,7 @@ sudo python setup.py install
 
 ## Running all the nodes
 Overview of the nodes:
-![alt text](https://github.com/vmatth/P6/src/nodes.png?raw=true)
+![alt text](P6/src/nodes.png?raw=true "Nodes")
 
 
 Run each command in a new terminal
