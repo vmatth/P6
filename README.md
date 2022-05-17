@@ -2,9 +2,8 @@
 
 Overview of the ROS nodes:
 
-<img src="src/nodes.png" width="500" height="500">
+<img src="src/nodes.png" width="500" height="700">
 
-![alt text](src/nodes.png?raw=true "Nodes" width="100")
 
 This README explains how to build the workspace and run the nodes.
 ## Setup ROS Melodic
