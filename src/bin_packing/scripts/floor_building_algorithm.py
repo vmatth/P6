@@ -118,6 +118,7 @@ class floor_building:
         h = _parcel.rounded_size.z
         _non_rotated_size = _parcel.actual_size #Copy the original size, as the other sizes will be rotated by the end of this function
 
+
         for y in range(ws_y):
             for x in range(ws_x):
                 z = self.height_map[x][y] #Get z for (x,y) coordinate
@@ -221,12 +222,12 @@ class floor_building:
 
         #If any available packing positions were found
         if len(xyzlist) > 0:
-            temp = xyzlist[0]
+            temp = xyzlist[0] #List of all positions and orientations
             for i in range(len(xyzlist)):
                 #print("temppp, ", temp)
                 #print("xyzlist", xyzlist[i])
                 #print("temp[4]", temp[4], "xyzlist[4]", xyzlist[i][4]) 
-                if xyzlist[i][2] < temp[2]:
+                if xyzlist[i][2] < temp[2]: #Compare z (height)
                     temp = xyzlist[i]
                     #print("new temp ", temp)
                 elif xyzlist[i][4] < temp[4] and xyzlist[i][2] <= temp[2]:

@@ -34,6 +34,7 @@ def matrix_from_rtvec(rvec, tvec):
 
 
 
+
 def calibrate_lens(image_list):
     print("Calibrating lens")
     #print("list: ", image_list)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from math import degrees
 import pickle
 from socketserver import BaseRequestHandler
 import numpy as np
@@ -152,26 +153,50 @@ for i in range(len(R_gripper2base_list)):
     print("R_target2cam " , R_target2cam_list[i])
     print("t_target2cam ", t_target2cam_list[i])
 
-    #Output is cam2gripper
-    R, t = cv2.calibrateHandEye(R_gripper2base_list, t_gripper2base_list, R_target2cam_list, t_target2cam_list, method=cv2.CALIB_HAND_EYE_TSAI)
+    #Output is cam2base
+    _R, t = cv2.calibrateHandEye(R_gripper2base_list, t_gripper2base_list, R_target2cam_list, t_target2cam_list, method=cv2.CALIB_HAND_EYE_DANIILIDIS)
+
     print("OUTPUT")
-    print("R", R)
+    print("R", _R)
     print("t", t)
 
+    r = R.from_dcm(_R).as_euler('xyz', degrees=True)
+    print("r", r)
 
-    #Calculate base2cam
-    print("//////////////")
-    print("Base2Cam: ", )
-    print("//////////////")
 
-    #base2gripper
-    H_base2gripper_list[i]
-
-    #target2cam
-    H_target2cam_list[i]
-
-    H_base2cam = np.matmul(H_base2gripper_list[i], H_target2cam_list[i])
+    #combine to one 4x4 matrix
+    H_cam2base = chessboard.matrix_from_rtvec(_R, t)
+    print("H_cam2base: ", H_cam2base)
+    deter = np.linalg.det(H_cam2base)
+    print("det: ", deter)
+    H_base2cam = inv(H_cam2base)
     print("H_base2cam: ", H_base2cam)
+
+
+# ('H_cam2base: ', array([[ 3.04124985,  3.04124985,  3.04124985,  0.22406635],
+#        [ 0.61338158,  0.61338158,  0.61338158, -1.10247529],
+#        [ 0.08901264,  0.08901264,  0.08901264,  0.47765429],
+#        [ 0.        ,  0.        ,  0.        ,  1.        ]]))
+
+
+
+    #HERERERRERrererere
+
+
+
+    # #Calculate base2cam
+    # print("//////////////")
+    # print("Base2Cam: ", )
+    # print("//////////////")
+
+    # #base2gripper
+    # H_base2gripper_list[i]
+
+    # #target2cam
+    # H_target2cam_list[i]
+
+    # H_base2cam = np.matmul(H_base2gripper_list[i], H_target2cam_list[i])
+    # print("H_base2cam: ", H_base2cam)
 
 
 

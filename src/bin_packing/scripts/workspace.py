@@ -110,9 +110,9 @@ def main():
     #size in cm
 
     #Size at UR5 setup
-    x = rospy.get_param("~size_x", 30)
-    y = rospy.get_param("~size_y", 30)
-    z = rospy.get_param("~size_z", 30)
+    x = rospy.get_param("~size_x", 38)
+    y = rospy.get_param("~size_y", 60)
+    z = rospy.get_param("~size_z", 58)
     # #For testing
     # x = rospy.get_param("~size_x", 120)
     # y = rospy.get_param("~size_y", 75)
@@ -120,12 +120,14 @@ def main():
 
     #pos in m
     center_pos_x = rospy.get_param("~center_pos_x", 0)
-    center_pos_y = rospy.get_param("~center_pos_y", 0.65)
-    center_pos_z = rospy.get_param("~center_pos_z", -0.17)
+    center_pos_y = rospy.get_param("~center_pos_y", 0.52)
+    center_pos_z = rospy.get_param("~center_pos_z", -0.29)
 
     corner_pos_x = rospy.get_param("~corner_pos_x", -0.3)
-    corner_pos_y = rospy.get_param("~corner_pos_y", 0.80)
-    corner_pos_z = rospy.get_param("~corner_pos_z", -0.17)
+    corner_pos_y = rospy.get_param("~corner_pos_y", 0.71)
+    corner_pos_z = rospy.get_param("~corner_pos_z", -0.29)
+
+    #robot ur5 max y reach= 85 cm
 
     ws = workspace(x, y, z, Point(center_pos_x, center_pos_y, center_pos_z), Point(corner_pos_x, corner_pos_y, corner_pos_z)) #Create a new instance of the workspace class
     

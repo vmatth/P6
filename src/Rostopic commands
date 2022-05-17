@@ -13,6 +13,8 @@
 
 rostopic pub /vision/parcel read_camera/Parcel '[28.9, 26, 10]' '0' '[-4.5, 0, 10]'
 
+%%%%%%%%%%%%%%%%%%%%%%%%%Publish to /robot/pick_place %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %Simulate a parcel from the packing node
 %This parcel will go to the robot (in robot frames)
 
@@ -27,6 +29,9 @@ rostopic pub /vision/parcel read_camera/Parcel '[28.9, 26, 10]' '0' '[-4.5, 0, 1
 
 rostopic pub /robot/pick_place bin_packing/Packing_info '[20, 5, 15]' '[20, 5, 15]' '[20, 5, 15]' '[0, -0.5, 0.15]' '[0, 0.5, 0.1]' '0' '1' '0'
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %Publish commando that goes to the frame converter (cam frame and workspace frame)
 %Packing_info msg contains:
 %actual_size [cm]
@@ -38,7 +43,7 @@ rostopic pub /robot/pick_place bin_packing/Packing_info '[20, 5, 15]' '[20, 5, 1
 %parcel_rotation [deg]
 %Publish commando that will be converted from cam & roller cage frame to robot frame
 
-rostopic pub /workspace/add_parcel bin_packing/Packing_info '[20, 20, 15]' '[20, 20, 15]' '[16, 23, 15]' '[0, 0, 0]' '0' '0' '0'
+rostopic pub /workspace/add_parcel bin_packing/Packing_info '[10, 10, 5]' '[10, 10, 5]' '[10, 10, 5]' '[-4.5, 0, 5]' '[5, 5, 0]' '0' '1' '0'
 
 
 
