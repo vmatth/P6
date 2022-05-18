@@ -80,8 +80,8 @@ class mover:
         workspace_name = "workspace"
         workspace_size = (data.size.y/100, data.size.x/100, 0.001)
         self.scene.add_box(workspace_name, workspace_pose, size=workspace_size)    
-        #self.validate_workspace_boundaries() #todo only do once
-        self.add_walls(workspace_pose, Point(workspace_size[0], workspace_size[1], data.size.z/100))
+        self.validate_workspace_boundaries() #todo only do once
+        #self.add_walls(workspace_pose, Point(workspace_size[0], workspace_size[1], data.size.z/100))
 
 
     #Defines the environment in rviz for moveit trajectory calculations
@@ -223,7 +223,7 @@ class mover:
 
         #If the plan succeeded then pack
         if plan == 1:
-            #rospy.sleep(0.25)         
+            rospy.sleep(0.25)         
             self.go_to_predefined_pose("pack_ready")
             self.go_to_above_pack()
             self.place_parcel()
