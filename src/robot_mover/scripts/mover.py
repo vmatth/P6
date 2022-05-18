@@ -80,8 +80,8 @@ class mover:
         workspace_name = "workspace"
         workspace_size = (data.size.y/100, data.size.x/100, 0.001)
         self.scene.add_box(workspace_name, workspace_pose, size=workspace_size)    
-        self.validate_workspace_boundaries() #todo only do once
-        #self.add_walls(workspace_pose, Point(workspace_size[0], workspace_size[1], data.size.z/100))
+        #self.validate_workspace_boundaries() #todo only do once
+        self.add_walls(workspace_pose, Point(workspace_size[0], workspace_size[1], data.size.z/100))
 
 
     #Defines the environment in rviz for moveit trajectory calculations
@@ -139,7 +139,7 @@ class mover:
         print("Adding walls")
         wall_thickness = 0.01
         wall_height = workspace_size.z
-        wall_tolerance = 0.01
+        wall_tolerance = 0.02
 
 
         wall_pose = geometry_msgs.msg.PoseStamped()
@@ -195,7 +195,7 @@ class mover:
         #Pick parcel from above
         plan = 0
         if parcel.picking_side == 1:
-            plan = self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009), self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle)))
+            plan = self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.014), self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle)))
             #rospy.sleep(0.25)
             self.connect_parcel()
             self.suck()
@@ -247,13 +247,13 @@ class mover:
         if(abs(ang_diff) < 1):
                 return True
         #Pick the parcel
-        if self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009), self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle))):  
+        if self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.014), self.euler_to_orientation(-180, 0, 90 + abs(parcel.angle))):  
             #rospy.sleep(0.5)
             self.connect_parcel()
             self.suck()
             #rospy.sleep(0.5)
             #Rotate the parcel
-            if self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.009), self.euler_to_orientation(-180, 0, 90 + ang)):  
+            if self.go_to_point(Point(parcel.start_pos.x, parcel.start_pos.y, parcel.start_pos.z - 0.014), self.euler_to_orientation(-180, 0, 90 + ang)):  
                 self.detach_parcel()
                 #rospy.sleep(0.5)
 
