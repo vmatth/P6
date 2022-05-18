@@ -1,6 +1,6 @@
 # P6 Robotics Bachelor Project
 
-Overview of the ROS nodes:
+Overview of the ROS nodes and topics:
 
 <img src="src/nodes.png" width="500" height="850">
 
