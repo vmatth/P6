@@ -122,6 +122,7 @@ Using the UR5 controller:
 ### Setup wired PC network:
 
 Choose static IP address, e.g 172.22.22.1
+Input Netmask as 255.255.255.0, Gateway and DNS server as 0.0.0.0 (same as the robot)
 
 Add the computer's IP address to the UR5 using the controller
 
