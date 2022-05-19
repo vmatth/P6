@@ -376,6 +376,7 @@ class mover:
         if self.sim == False:
             set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
             set_io(fun = 1, pin = 0 ,state = 1)
+        rospy.sleep(999)
 
 
     #Detaches the parcel from the moveit collision system in rviz and the physical vacuum gripper
