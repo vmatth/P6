@@ -10,7 +10,7 @@ class parcel:
         self.start_position = _start_position #The position where the parcel is placed (in respect to the camera frame)
         self.angle = _angle #Angle from the camera. 
         ########Rounded size + 1 to add tolerance ################
-        self.rounded_size = Point(math.ceil(_actual_size.x) + 1, math.ceil(_actual_size.y) + 1, math.ceil(_actual_size.z))
+        self.rounded_size = Point(math.ceil(_actual_size.x) + 2, math.ceil(_actual_size.y) + 2, math.ceil(_actual_size.z))
         ########Rounded size without tolerance
         #self.rounded_size = Point(math.ceil(_actual_size.x), math.ceil(_actual_size.y), math.ceil(_actual_size.z))
         self.actual_size = _actual_size

@@ -35,11 +35,7 @@ class workspace:
         rospy.loginfo(rospy.get_caller_id() + "Workspace received new parcel %s", data)
         #create a parcel class
         self.parcels.append(data)
-    #74
-    #18
-    #
         self.prev_height_map = copy.deepcopy(self.height_map)
-        print("add parcel prev height map", self.prev_height_map)
        # print("PREV HEIGT NAP:", self.prev_height_map)
 
         #Add parcel to height map, by changing each pixel (x,y) to the height
@@ -170,10 +166,8 @@ class workspace:
         
         if data.parcels_to_yeet == 1:
             rospy.sleep(1)
-            print("PREV", self.prev_height_map)
             print("Removing last parcel")
             self.parcels.pop()
-            print("CURRENT HEGIHT MAP", self.height_map)
             self.height_map = self.prev_height_map
             self.update_workspace()
 
@@ -195,11 +189,11 @@ def main():
     #pos in m
     center_pos_x = rospy.get_param("~center_pos_x", 0)
     center_pos_y = rospy.get_param("~center_pos_y", 0.52)
-    center_pos_z = rospy.get_param("~center_pos_z", -0.27)
+    center_pos_z = rospy.get_param("~center_pos_z", -0.26)
 
     corner_pos_x = rospy.get_param("~corner_pos_x", -0.3)
     corner_pos_y = rospy.get_param("~corner_pos_y", 0.71)
-    corner_pos_z = rospy.get_param("~corner_pos_z", -0.27)
+    corner_pos_z = rospy.get_param("~corner_pos_z", -0.26)
 
     #robot ur5 max y reach= 85 cm
 

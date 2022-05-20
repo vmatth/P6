@@ -223,7 +223,7 @@ class mover:
             self.connect_parcel()
             self.suck()
         #Pick parcel from side
-        elif parcel.picking_side == 2 and parcel.non_rotated_size.y > parcel.non_rotated_size.x:
+        elif parcel.picking_side == 2 and parcel.non_rotated_size.y >= parcel.non_rotated_size.x:
             print("pick side2, y>x")
             #Rotate parcel to 0 degrees
             if self.rotate_parcel_to_angle(parcel, 0):
@@ -233,7 +233,7 @@ class mover:
             #Rotate parcel to 90 degrees
             if self.rotate_parcel_to_angle(parcel, 0):
                 plan = self.grab_parcel_at_picking_side(parcel, parcel.non_rotated_size.y/100, 90, grab_with_90_deg)            
-        elif parcel.picking_side == 3 and parcel.non_rotated_size.y > parcel.non_rotated_size.x:
+        elif parcel.picking_side == 3 and parcel.non_rotated_size.y >= parcel.non_rotated_size.x:
             print("pick side 3, y>x")
             #Rotate parcel to 90 degrees
             if self.rotate_parcel_to_angle(parcel, 90):
@@ -447,13 +447,13 @@ class mover:
 
     #This function moves the robot above the position where the parcel will be packed with an offset of "amount_above"
     #This is to help with the trajectory planning as the robot will only need to move downwards along the z-axis
-    def go_to_above_pack(self, amount_above):
+    def go_to_above_pack(self, z_pos):
         #above_pose = geometry_msgs.msg.PoseStamped()
         above_pose = geometry_msgs.msg.Pose()
 
         above_pose.position.x = self.parcel_goal.position.x
         above_pose.position.y = self.parcel_goal.position.y
-        above_pose.position.z = self.parcel_goal.position.z + amount_above
+        above_pose.position.z = z_pos
 
         above_pose.orientation = self.parcel_goal.orientation
         
@@ -508,11 +508,10 @@ class mover:
 
     def remove_parcels(self, data):
         if data.parcels_to_yeet == 1:
-            print("%55555555555555 REMOVE LAST PARCEL")
+            #Remove previously packed
             p_name = "parcel" + str(self.parcels_packed - 1)
             self.scene.remove_attached_object(self.eef_link, name=p_name)
             self.scene.remove_world_object(p_name)
-
 
 
 def main():
