@@ -57,7 +57,7 @@ class converter():
         # <-----o                       o----->
 
         #How much the camera frame is displaced from the robot's frame [m] 
-        cam_x_displacement = 0.0485
+        cam_x_displacement = 0.04
         cam_y_displacement = -0.530
         cam_z_displacement = 0
         #xyz="0.0858675 -0.480904 1.13782" Danilidis

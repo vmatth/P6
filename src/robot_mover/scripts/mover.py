@@ -52,6 +52,7 @@ class mover:
         #self.go_to_test_point(Point(-0.31, 0.5, 0.044))
         
         rospy.Subscriber("/robot/pick_place", Packing_info, self.add_parcel)
+        self.sub = rospy.Subscriber("/workspace/remove_parcels", Workspace, self.remove_parcels)
 
         #print("Sim ", self.sim)
         self.go_to_predefined_pose("idle")
@@ -108,6 +109,15 @@ class mover:
         table_pose.pose.position.z = -0.059
         table_name = "table"
         self.scene.add_box(table_name, table_pose, size=(0.41, 0.93, 0.084))
+
+        # stopper_pose = geometry_msgs.msg.PoseStamped()
+        # stopper_pose.header.frame_id = "base_link"
+        # stopper_pose.pose.orientation.w = 1.0
+        # stopper_pose.pose.position.x = -0.18
+        # stopper_pose.pose.position.y = -0.59
+        # stopper_pose.pose.position.z = 0.03
+        # stopper_name = "stopper"
+        # self.scene.add_box(stopper_name, stopper_pose, size=(0.037, 0.38, 0.105))
         
         backboard_pose = geometry_msgs.msg.PoseStamped()
         backboard_pose.header.frame_id = "base_link"
@@ -277,9 +287,15 @@ class mover:
                 above_point = Point()
                 above_point = self.group.get_current_pose().pose.position
                 above_point.z = above_point.z + 0.2
+
+                self.go_to_point(above_point, self.group.get_current_pose().pose.orientation)
+
+                above_point = Point()
+                above_point = self.group.get_current_pose().pose.position
                 above_point.x = above_point.x + 0.2
 
                 self.go_to_point(above_point, self.group.get_current_pose().pose.orientation)
+
                 #self.go_to_predefined_pose("pick_ready") #TODO: DONT GO ALL THE WAY UP!
                 return True
         return False
@@ -290,7 +306,12 @@ class mover:
     #rot angle is True or False depending on if the gripper needs to pick up the parcel rotated 90 deg
     def grab_parcel_at_picking_side(self, parcel, new_width, angle, rot_angle):
         print("Grab at picking side: ", new_width, angle, "   ", rot_angle)
-        grab_offset = 0.01 #The gripper pushes the parcel slightly to make sure it has grabbed it [m]
+        # wall_x = -0.175
+        # left_parcel_pos = parcel.start_pos.x - (new_width/2)
+        # grab_offset = abs(left_parcel_pos - wall_x)
+        # print("grab_offset is", grab_offset)
+        grab_offset = 0.01
+        #grab_offset = 0.01 #The gripper pushes the parcel slightly to make sure it has grabbed it [m]
         height_offset = 0.008
         #Go to position next to the parcel
         self.go_to_point(Point(parcel.start_pos.x + new_width, parcel.start_pos.y, parcel.start_pos.z - height_offset - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))  
@@ -316,11 +337,11 @@ class mover:
         #Connect parcel to move it collision
         rospy.sleep(0.3)
         self.connect_parcel()
+
         #rospy.sleep(0.25)
         #Move slightly up to prevent collision with table
         #plan = self.go_to_point(Point(parcel.start_pos.x + (parcel.non_rotated_size.y/100/2), parcel.start_pos.y, parcel.start_pos.z + 0.2), self.euler_to_orientation(180, -90, 180))
         plan = True
-        rospy.sleep(1)
         return plan
 
     #Stores the end_goal in the local variable: "self.parcel_goal"
@@ -376,7 +397,6 @@ class mover:
         if self.sim == False:
             set_io = rospy.ServiceProxy('/ur_hardware_interface/set_io',SetIO)
             set_io(fun = 1, pin = 0 ,state = 1)
-        rospy.sleep(999)
 
 
     #Detaches the parcel from the moveit collision system in rviz and the physical vacuum gripper
@@ -485,6 +505,14 @@ class mover:
         #print("quaternion pls work", output)
 
         return output
+
+    def remove_parcels(self, data):
+        if data.parcels_to_yeet == 1:
+            print("%55555555555555 REMOVE LAST PARCEL")
+            p_name = "parcel" + str(self.parcels_packed - 1)
+            self.scene.remove_attached_object(self.eef_link, name=p_name)
+            self.scene.remove_world_object(p_name)
+
 
 
 def main():

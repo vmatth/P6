@@ -36,7 +36,7 @@ class hand_eye:
         # moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('robot_mover', anonymous=True)
 
-        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_depth_rect", Image, self.callback)
+        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color_rect", Image, self.callback)
 
         self.counter = 0
         self.distances = []
@@ -96,20 +96,20 @@ class hand_eye:
             #cx = 890
             #cy = 535
 
-            x = 890
-            y = 536
+            x = 690
+            y = 336
             #Draw circle at xy
             distance = image[y][x]
             cv2.circle(image, (x,y), 3, (255, 0, 0), -1)
 
 
-            self.distances.append(distance)
-            self.counter = self.counter + 1
-            if(self.counter > 1000):
-                print("Calculating median ")
-                median = np.median(self.distances)
-                print("Median: ", median)
-                rospy.sleep(1000)
+            # self.distances.append(distance)
+            # self.counter = self.counter + 1
+            # if(self.counter > 1000):
+            #     print("Calculating median ")
+            #     median = np.median(self.distances)
+            #     print("Median: ", median)
+            #     rospy.sleep(1000)
 
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
@@ -117,7 +117,7 @@ class hand_eye:
             z = 1
 
             self.calculate_XYZ(x,y,z)
-            print("DISTANCE", distance)
+            #print("DISTANCE", distance)
             cv2.waitKey(3)
             cv2.imshow("ja2", image)
             #cv2.waitKey(0)

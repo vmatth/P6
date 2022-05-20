@@ -10,6 +10,7 @@ from std_msgs.msg import MultiArrayLayout
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
 from bin_packing.convertTo2DArray import convertToMultiArray #convert function
 import csv
+import copy
 
 class workspace:
     def __init__ (self, x, y, z, center_pos, corner_pos):
@@ -18,6 +19,7 @@ class workspace:
         self.center_position = center_pos
         self.corner_position = corner_pos
         self.height_map = [[0.0 for i in range(y)] for j in range(x)] 
+        self.prev_height_map = [[0.0 for i in range(y)] for j in range(x)] 
         self.sub = rospy.Subscriber("/workspace/add_parcel", Packing_info, self.add_parcel)
         self.pub = rospy.Publisher("/workspace/info", Workspace, queue_size=10, latch=True)
         self.sub = rospy.Subscriber("/workspace/update_height_map", Workspace, self.heightmap_callback)
@@ -33,6 +35,12 @@ class workspace:
         rospy.loginfo(rospy.get_caller_id() + "Workspace received new parcel %s", data)
         #create a parcel class
         self.parcels.append(data)
+    #74
+    #18
+    #
+        self.prev_height_map = copy.deepcopy(self.height_map)
+        print("add parcel prev height map", self.prev_height_map)
+       # print("PREV HEIGT NAP:", self.prev_height_map)
 
         #Add parcel to height map, by changing each pixel (x,y) to the height
         for x in range(int(data.end_pos.x), int(data.end_pos.x) + int(data.rounded_size.x)):
@@ -111,8 +119,6 @@ class workspace:
 
         #save to self
 
-
-
     def heightmap_callback(self, data):
         print("Height map updated with size: ", data.size)
         print("receiving hm", data.height_map)
@@ -153,13 +159,24 @@ class workspace:
             rospy.sleep(2)
             self.update_workspace()
 
-        self.seed = self.seed + 1
-        ##########################
-        #########TESTING
-        ##########################
-        if(self.seed == 30 + 1): ###Change this number for the amount of times to test
-            print("STOPPING TEST!!!")
-            rospy.sleep(999999)
+        # self.seed = self.seed + 1
+        # ##########################
+        # #########TESTING
+        # ##########################
+        # if(self.seed == 30 + 1): ###Change this number for the amount of times to test
+        #     print("STOPPING TEST!!!")
+        #     rospy.sleep(999999)
+
+        
+        if data.parcels_to_yeet == 1:
+            rospy.sleep(1)
+            print("PREV", self.prev_height_map)
+            print("Removing last parcel")
+            self.parcels.pop()
+            print("CURRENT HEGIHT MAP", self.height_map)
+            self.height_map = self.prev_height_map
+            self.update_workspace()
+
 
 def main():
     rospy.init_node('workspace', anonymous=True)
@@ -169,20 +186,20 @@ def main():
     # # #Size at UR5 setup
     x = rospy.get_param("~size_x", 38)
     y = rospy.get_param("~size_y", 60)
-    z = rospy.get_param("~size_z", 58)
-    #For testing
-    # x = rospy.get_param("~size_x", 120)
-    # y = rospy.get_param("~size_y", 75)
-    # z = rospy.get_param("~size_z", 170)
+    z = rospy.get_param("~size_z", 58) #58
+    # #For testing
+    # x = rospy.get_param("~size_x", 5)
+    # y = rospy.get_param("~size_y", 5)
+    # z = rospy.get_param("~size_z", 5)
 
     #pos in m
     center_pos_x = rospy.get_param("~center_pos_x", 0)
     center_pos_y = rospy.get_param("~center_pos_y", 0.52)
-    center_pos_z = rospy.get_param("~center_pos_z", -0.29)
+    center_pos_z = rospy.get_param("~center_pos_z", -0.27)
 
     corner_pos_x = rospy.get_param("~corner_pos_x", -0.3)
     corner_pos_y = rospy.get_param("~corner_pos_y", 0.71)
-    corner_pos_z = rospy.get_param("~corner_pos_z", -0.29)
+    corner_pos_z = rospy.get_param("~corner_pos_z", -0.27)
 
     #robot ur5 max y reach= 85 cm
 
