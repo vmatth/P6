@@ -14,6 +14,7 @@ from geometry_msgs.msg import Point
 from bin_packing.msg import Workspace #workspace msg
 import math
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
+import time
 
 
 class floor_building:
@@ -23,6 +24,8 @@ class floor_building:
         self.workspace_size = Point(0, 0, 0)
         self.height_map = [[]]
         self.list = []
+        self.result_list = []
+        self.time_counter = 0
 
         self.workspace_pub = rospy.Publisher('/workspace/remove_parcels', Workspace, queue_size=10)
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
@@ -108,6 +111,7 @@ class floor_building:
             
 
     def floor_building_algorithm(self, _parcel):
+        start = time.time()
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
         xyzlist = []     
@@ -286,6 +290,16 @@ class floor_building:
 
         elif len(xyzlist) <= 0:
             return False
+
+        end = time.time()
+        result = end - start
+        print("Elapsed time is %f seconds.: " % result)
+        self.time_counter = self.time_counter +1
+        self.result_list.append(result)
+        if self.time_counter == 430:
+            # print("Time list: ", self.result_list)
+            out = sum(self.result_list) / len(self.result_list)
+            print("Average time: ", out)
 
 
     def start_floor_building(self, parcel):
