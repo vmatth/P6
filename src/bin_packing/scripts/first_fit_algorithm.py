@@ -13,6 +13,7 @@ from bin_packing.parcel import parcel
 from geometry_msgs.msg import Point
 from bin_packing.msg import Workspace #workspace msg
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
+import time
 
 class first_fit:
     def __init__(self):
@@ -20,6 +21,8 @@ class first_fit:
 
         self.workspace_size = Point(0, 0, 0)
         self.height_map = [[]]
+        self.result_list = []
+        self.time_counter = 0
 
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
         self.workspace_pub = rospy.Publisher('/workspace/remove_parcels', Workspace, queue_size=10)
@@ -109,6 +112,7 @@ class first_fit:
         #     return True
 
     def first_fit_algorithm(self, parcel, picking_side, parcel_rotation, non_rotated_size):
+        start = time.time()
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
 
@@ -127,8 +131,13 @@ class first_fit:
                         #Publish to a ros topic
                         self.packing_pub(Point(x, y, z), parcel.start_position, parcel.actual_size, parcel.rounded_size, picking_side, parcel_rotation, parcel.angle, non_rotated_size)
                         return (x,y,z) #Return x,y coordinate for parcel
-            
+
+        end = time.time()
+        result = end - start
+        print("Elapsed time is %f seconds.: " % result)
+        self.result_list.append(result)    
         return False
+
 
     #Goes through all the different rotations for the package
     def start_first_fit(self, p):
@@ -145,6 +154,8 @@ class first_fit:
                             p.rotate_parcel('z')
                             if self.first_fit_algorithm(p, 3, 90, non_rotated_size) == False:       
                                 print("Parcel cannot be packed into the roller cage")
+                                out = sum(self.result_list) / len(self.result_list)
+                                print("Average time: ", out)
                                 msg = Workspace()
                                 #Save data to csv file
                                 msg.save_data = True

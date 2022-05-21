@@ -14,6 +14,7 @@ from geometry_msgs.msg import Point
 from bin_packing.msg import Workspace #workspace msg
 import math
 from bin_packing.convertTo2DArray import convertTo2DArray #convert function
+import time
 
 
 
@@ -24,6 +25,8 @@ class floor_building:
         self.workspace_size = Point(0, 0, 0)
         self.height_map = [[]]
         self.list = []
+        self.result_list = []
+        self.time_counter = 0
         
         self.pub = rospy.Publisher('/workspace/add_parcel', Packing_info, queue_size=10)
         self.workspace_pub = rospy.Publisher('/workspace/remove_parcels', Workspace, queue_size=10)
@@ -109,6 +112,7 @@ class floor_building:
             
 
     def floor_building_algorithm(self, _parcel):
+        start = time.time()
         ws_x = int(self.workspace_size.x)
         ws_y = int(self.workspace_size.y)
         xyzlist = []     
@@ -289,10 +293,17 @@ class floor_building:
         elif len(xyzlist) <= 0:
             return False
 
+        end = time.time()
+        result = end - start
+        print("Elapsed time is %f seconds.: " % result)
+        self.result_list.append(result)
+
 
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
+            out = sum(self.result_list) / len(self.result_list)
+            print("Average time: ", out)
             msg = Workspace()
             #Save data to csv file
             msg.save_data = True
