@@ -8,9 +8,10 @@ class parcel:
     def __init__(self, _position, _actual_size, _start_position, _angle):
         self.position = _position #The goal position where the parcel will be placed in the roller cage (in respect to the roller cage frame)
         self.start_position = _start_position #The position where the parcel is placed (in respect to the camera frame)
-        self.angle = _angle #Angle from the camera. 
+        self.angle = _angle #Angle from the camera.
+        self.tolerence = 0 
         ########Rounded size + 1 to add tolerance ################
-        self.rounded_size = Point(math.ceil(_actual_size.x) + 2, math.ceil(_actual_size.y) + 2, math.ceil(_actual_size.z))
+        self.rounded_size = Point(math.ceil(_actual_size.x) + self.tolerence, math.ceil(_actual_size.y) + self.tolerence, math.ceil(_actual_size.z))
         ########Rounded size without tolerance
         #self.rounded_size = Point(math.ceil(_actual_size.x), math.ceil(_actual_size.y), math.ceil(_actual_size.z))
         self.actual_size = _actual_size

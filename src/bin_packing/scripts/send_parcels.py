@@ -50,6 +50,7 @@ def tiny():
     y = random.randrange(8, 12)
     z = random.randrange(8, 12)
     packing_pub(Point(x,y,z))
+    
 def dao():
     x = random.randrange(15, 80)
     print("x: ", x)

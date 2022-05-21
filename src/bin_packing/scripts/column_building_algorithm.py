@@ -294,17 +294,14 @@ class floor_building:
         end = time.time()
         result = end - start
         print("Elapsed time is %f seconds.: " % result)
-        self.time_counter = self.time_counter +1
         self.result_list.append(result)
-        if self.time_counter == 430:
-            # print("Time list: ", self.result_list)
-            out = sum(self.result_list) / len(self.result_list)
-            print("Average time: ", out)
 
 
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
+            out = sum(self.result_list) / len(self.result_list)
+            print("Average time: ", out)
             msg = Workspace()
             #Save data to csv file
             msg.save_data = True
