@@ -189,11 +189,11 @@ def main():
     #pos in m
     center_pos_x = rospy.get_param("~center_pos_x", 0)
     center_pos_y = rospy.get_param("~center_pos_y", 0.52)
-    center_pos_z = rospy.get_param("~center_pos_z", -0.26)
+    center_pos_z = rospy.get_param("~center_pos_z", -0.30)
 
-    corner_pos_x = rospy.get_param("~corner_pos_x", -0.3)
+    corner_pos_x = rospy.get_param("~corner_pos_x", -0.30)
     corner_pos_y = rospy.get_param("~corner_pos_y", 0.71)
-    corner_pos_z = rospy.get_param("~corner_pos_z", -0.26)
+    corner_pos_z = rospy.get_param("~corner_pos_z", -0.30)
 
     #robot ur5 max y reach= 85 cm
 

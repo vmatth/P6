@@ -145,11 +145,11 @@ class first_fit:
                             p.rotate_parcel('z')
                             if self.first_fit_algorithm(p, 3, 90, non_rotated_size) == False:       
                                 print("Parcel cannot be packed into the roller cage")
-                                msg = Workspace()
-                                #Save data to csv file
-                                msg.save_data = True
-                                msg.parcels_to_yeet = -1
-                                self.workspace_pub.publish(msg)
+                                # msg = Workspace()
+                                # #Save data to csv file
+                                # msg.save_data = True
+                                # msg.parcels_to_yeet = -1
+                                # self.workspace_pub.publish(msg)
 
     def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()

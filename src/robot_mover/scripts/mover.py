@@ -123,7 +123,7 @@ class mover:
         backboard_pose.header.frame_id = "base_link"
         backboard_pose.pose.orientation.w = 1.0
         backboard_pose.pose.position.x = 0.0
-        backboard_pose.pose.position.y = -0.80   
+        backboard_pose.pose.position.y = -0.78
         backboard_pose.pose.position.z = 0.445
         backboard_name = "backboard"
         self.scene.add_box(backboard_name, backboard_pose, size=(0.41, 0.05, 1.06))
@@ -155,7 +155,7 @@ class mover:
         print("----------------------------------------")
         wall_thickness = 0.01
         wall_height = workspace_size.z
-        wall_tolerance = 0.02
+        wall_tolerance = 0.025
 
 
         wall_pose = geometry_msgs.msg.PoseStamped()
@@ -170,7 +170,7 @@ class mover:
         wall_pose = geometry_msgs.msg.PoseStamped()
         wall_pose.header.frame_id = "base_link"
         wall_pose.pose.orientation.w = 1.0
-        wall_pose.pose.position.x = workspace_pose.pose.position.x + (workspace_size.x/2) + (wall_thickness/2) + wall_tolerance
+        wall_pose.pose.position.x = workspace_pose.pose.position.x + (workspace_size.x/2) + (wall_thickness/2) + wall_tolerance + 0.1
         wall_pose.pose.position.y = workspace_pose.pose.position.y + wall_tolerance
         wall_pose.pose.position.z = workspace_pose.pose.position.z + (wall_height/2)
         wall_name = "wall_1"
@@ -215,6 +215,9 @@ class mover:
         if parcel.parcel_rotation == 90:
             grab_with_90_deg = True
 
+        self.add_helper()
+        self.add_top_helper()
+
         #Pick parcel from above
         plan = 0
         if parcel.picking_side == 1:
@@ -247,11 +250,14 @@ class mover:
         #If the plan succeeded then pack
         if plan == 1:
             rospy.sleep(0.25)         
+            self.remove_helper()
+            self.remove_top_helper()
             self.go_to_predefined_pose("above_wall")
             self.go_to_predefined_pose("pack_ready")
             self.go_to_all_above_packs()
             self.place_parcel()
             self.detach_parcel()
+            self.go_to_all_above_packs_bottom_to_top()
             self.go_to_predefined_pose("pack_ready")
             self.go_to_predefined_pose("idle")
             self.group.clear_pose_targets()
@@ -286,15 +292,49 @@ class mover:
 
                 above_point = Point()
                 above_point = self.group.get_current_pose().pose.position
-                above_point.z = above_point.z + 0.2
+                above_point.z = above_point.z + 0.15
+
+                self.go_to_point(above_point, self.group.get_current_pose().pose.orientation)
+
+                self.add_side_helper()
+
+                above_point = Point()
+                above_point.x = 0
+                above_point.y = -0.5
+                above_point.z = 0.27
 
                 self.go_to_point(above_point, self.group.get_current_pose().pose.orientation)
 
                 above_point = Point()
-                above_point = self.group.get_current_pose().pose.position
-                above_point.x = above_point.x + 0.2
+                above_point.x = 0.1
+                above_point.y = -0.5
+                above_point.z = 0.27
 
-                self.go_to_point(above_point, self.group.get_current_pose().pose.orientation)
+                self.go_to_point(above_point, Quaternion(0.1078, -0.9361, -0.0102, 0.334))
+
+                above_point = Point()
+                above_point.x = 0.15
+                above_point.y = -0.5
+                above_point.z = 0.27
+
+                self.go_to_point(above_point, Quaternion(0.2201, -0.7884, -0.0492, 0.5722))
+
+                self.remove_side_helper()
+
+                above_point = Point()
+                above_point.x = 0.25
+                above_point.y = -0.5
+                above_point.z = 0.27
+
+                self.go_to_point(above_point, self.euler_to_orientation(180, -90, 180))
+
+                above_point = Point()
+                above_point.x = 0.25
+                above_point.y = -0.5
+                above_point.z = 0.12
+
+                self.go_to_point(above_point, self.euler_to_orientation(180, -90, 180))
+
 
                 #self.go_to_predefined_pose("pick_ready") #TODO: DONT GO ALL THE WAY UP!
                 return True
@@ -314,9 +354,9 @@ class mover:
         #grab_offset = 0.01 #The gripper pushes the parcel slightly to make sure it has grabbed it [m]
         height_offset = 0.008
         #Go to position next to the parcel
-        self.go_to_point(Point(parcel.start_pos.x + new_width, parcel.start_pos.y, parcel.start_pos.z - height_offset - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))  
+        self.go_to_point(Point(parcel.start_pos.x + (new_width/1.5), parcel.start_pos.y, parcel.start_pos.z - height_offset - (parcel.non_rotated_size.z/100/2)), self.euler_to_orientation(180, -90, 180))  
         if rot_angle == True:
-            self.go_to_point(Point(parcel.start_pos.x + new_width, parcel.start_pos.y, parcel.start_pos.z - height_offset - (parcel.non_rotated_size.z/100/2)), Quaternion(-0.5, -0.5, 0.5, 0.5))  
+            self.go_to_point(Point(parcel.start_pos.x + (new_width/1.5), parcel.start_pos.y, parcel.start_pos.z - height_offset - (parcel.non_rotated_size.z/100/2)), Quaternion(-0.5, -0.5, 0.5, 0.5))  
         #Remove parcel from collision (temporary)
         parcel_name = "parcel" + str(self.parcels_packed)
         self.scene.remove_world_object(parcel_name)
@@ -375,6 +415,8 @@ class mover:
     #Clears all packed parcels
     def clear_workspace(self):
         print("Clearing workspace")
+        self.remove_helper()
+        self.remove_top_helper()
         for i in range(10):
             try:
                 self.scene.remove_attached_object(self.eef_link, name="parcel" + str(i))
@@ -419,9 +461,9 @@ class mover:
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
         return plan
 
-    #This function moves the robot to multiple "above_pack" positions
+    #This function moves the robot to multiple "above_pack" positions FROM TOP TO BOTTOM
     def go_to_all_above_packs(self):
-        z_intervals = 0.1 #How much is added to each z position
+        z_intervals = 0.08 #How much is added to each z position
         stop = False
         z_positions = [] #Store a list of all z positions to move to
         z_last = self.parcel_goal.position.z #Store the previous z position as the goal z
@@ -429,10 +471,36 @@ class mover:
         while stop == False:
             z_new = z_last + z_intervals
             z_last = z_new
-            if z_new > (self.workspace.size.z/100) - 0.05: #If the new z position is taller than the workspace then stop
+            if z_new > (self.workspace.size.z/100) - 0.15: #If the new z position is taller than the workspace then stop
                 stop = True
             else: #If the new z position is acceptable, add to z_positions
                 z_positions.insert(0, z_new) #add to front of list
+
+        # z_positions.append(self.workspace.size.z/100)
+        # diff = self.workspace.size.z/100 - z_last
+        # z_positions.append((self.workspace.size.z/100) - (diff/2))
+        # z_positions.append(z_last)
+
+        print("All above pack positions:", z_positions)
+
+
+        for z in z_positions:
+            self.go_to_above_pack(z)
+
+    #This function moves the robot to multiple "above_pack" positions FROM BOTTOM TO TOP
+    def go_to_all_above_packs_bottom_to_top(self):
+        z_intervals = 0.08 #How much is added to each z position
+        stop = False
+        z_positions = [] #Store a list of all z positions to move to
+        z_last = self.parcel_goal.position.z #Store the previous z position as the goal z
+        #Add multiple z positions until one of them is above the workspace z
+        while stop == False:
+            z_new = z_last + z_intervals
+            z_last = z_new
+            if z_new > (self.workspace.size.z/100) - 0.15: #If the new z position is taller than the workspace then stop
+                stop = True
+            else: #If the new z position is acceptable, add to z_positions
+                z_positions.append(z_new)
 
         # z_positions.append(self.workspace.size.z/100)
         # diff = self.workspace.size.z/100 - z_last
@@ -512,7 +580,59 @@ class mover:
             p_name = "parcel" + str(self.parcels_packed - 1)
             self.scene.remove_attached_object(self.eef_link, name=p_name)
             self.scene.remove_world_object(p_name)
+            self.parcels_packed = self.parcels_packed - 1
 
+    def add_helper(self):
+        helper_pose = geometry_msgs.msg.PoseStamped()
+        helper_pose.header.frame_id = "base_link"
+        helper_pose.pose.orientation.w = 1.0
+        helper_pose.pose.position.x = 0.0
+        helper_pose.pose.position.y = 0.25
+        helper_pose.pose.position.z = 0.445
+        helper_name = "helper"
+        self.scene.add_box(helper_name, helper_pose, size=(0.6, 0.05, 1.06))
+
+
+    def remove_helper(self):
+         self.scene.remove_world_object("helper")
+
+    def add_top_helper(self):
+        top_pose = geometry_msgs.msg.PoseStamped()
+        top_pose.header.frame_id = "base_link"
+        top_pose.pose.orientation.w = 1.0
+        top_pose.pose.position.x = 0
+        top_pose.pose.position.y = -0.31
+        top_pose.pose.position.z = 0.8
+        top_name = "top_name"
+        self.scene.add_box(top_name, top_pose, size=(0.41, 0.93, 0.084))
+
+        #Side pose
+        top_pose = geometry_msgs.msg.PoseStamped()
+        top_pose.header.frame_id = "base_link"
+        top_pose.pose.orientation.w = 1.0
+        top_pose.pose.position.x = -0.25
+        top_pose.pose.position.y = -0.31
+        top_pose.pose.position.z = 0.4
+        top_name = "side_name"
+        self.scene.add_box(top_name, top_pose, size=(0.01, 0.93, 0.8))
+
+    def remove_top_helper(self):
+        self.scene.remove_world_object("top_name")
+        self.scene.remove_world_object("side_name")
+
+    def add_side_helper(self):
+        #Side pose
+        top_pose = geometry_msgs.msg.PoseStamped()
+        top_pose.header.frame_id = "base_link"
+        top_pose.pose.orientation.w = 1.0
+        top_pose.pose.position.x = 0.55
+        top_pose.pose.position.y = -0.31
+        top_pose.pose.position.z = 0.4
+        top_name = "side_name2"
+        self.scene.add_box(top_name, top_pose, size=(0.01, 0.93, 0.8))
+
+    def remove_side_helper(self):
+        self.scene.remove_world_object("side_name2")
 
 def main():
     #lav en instance af klassen

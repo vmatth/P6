@@ -94,7 +94,7 @@ class floor_building:
             #print("total: ", total_parcel_pixels)
             bottom_area_supported = supported_pixels/total_parcel_pixels * 100
             #print("Area supported: ", int(bottom_area_supported), "%")
-            if bottom_area_supported >= 95:
+            if bottom_area_supported >= 90:
                 #print("95 percent stability requirement")
                 return True
             elif counter >= 3 and bottom_area_supported >= 80:
@@ -291,11 +291,11 @@ class floor_building:
     def start_floor_building(self, parcel):
         if self.floor_building_algorithm(parcel) == False:
             print("Parcel cannot be packed into the roller cage")
-            msg = Workspace()
-            #Save data to csv file
-            msg.save_data = True
-            msg.parcels_to_yeet = -1
-            self.workspace_pub.publish(msg)
+            # msg = Workspace()
+            # #Save data to csv file
+            # msg.save_data = True
+            # msg.parcels_to_yeet = -1
+            # self.workspace_pub.publish(msg)
         
     def packing_pub(self, end_pos, start_pos, actual_size, rounded_size, picking_side, parcel_rotation, angle, non_rotated_size):
         msg = Packing_info()

@@ -36,7 +36,7 @@ class hand_eye:
         # moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('robot_mover', anonymous=True)
 
-        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_depth_rect", Image, self.callback)
+        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color_rect", Image, self.callback)
 
         self.counter = 0
         self.distances = []
@@ -48,39 +48,39 @@ class hand_eye:
         t = np.array([[-4.0874634519709227e-02, 1.3982841913969224e-04, 2.7999300285299357e-03]])
 
         print("u,v,z", u, v, z)
-        print("A: ", A)
-        print("R: ", R)
-        print("t: ", t)
+        # print("A: ", A)
+        # print("R: ", R)
+        # print("t: ", t)
 
         uv1 = np.array([[u,v,z]])
 
         #Transpose uv1
         uv1 = uv1.T
-        print("uv1 Transpose: ", uv1)
+        #print("uv1 Transpose: ", uv1)
 
         #Times by scaling factor
         s_uv1 = s*uv1
-        print("s*uv1", s_uv1)
+        #print("s*uv1", s_uv1)
 
         #Invert A
         A_inv = inv(A)
-        print("A^-1: ", A_inv)
+        #print("A^-1: ", A_inv)
 
         #A^-1 * s_uv1
         xyz_c = A_inv.dot(s_uv1)
-        print("A^-1 * s_uv1: ", xyz_c)
+        #print("A^-1 * s_uv1: ", xyz_c)
 
         #Transpose t
         t = t.T
-        print("T Transpose: ", t)
+        #print("T Transpose: ", t)
 
         #Substract t
         xyz_c = xyz_c - t
-        print("Subtracted by T: ", xyz_c)
+        #print("Subtracted by T: ", xyz_c)
 
         #Invert R
         R_inv = inv(R)
-        print("R^-1: ", R_inv)
+        #print("R^-1: ", R_inv)
 
         XYZ = R_inv.dot(xyz_c)
         print("Final XYZ", XYZ)
@@ -88,8 +88,6 @@ class hand_eye:
 
 
     def callback(self, image_data):
-        print("take pic!")
-        print("bruh")
         try:
             image = self.bridge.imgmsg_to_cv2(image_data, "passthrough")
 
@@ -102,22 +100,19 @@ class hand_eye:
             distance = image[y][x]
             cv2.circle(image, (x,y), 3, (255, 0, 0), -1)
 
-
-            self.distances.append(distance)
-            self.counter = self.counter + 1
-            if(self.counter > 1000):
-                print("Calculating median ")
-                median = np.median(self.distances)
-                print("Median: ", median)
-                rospy.sleep(1000)
-
-
+            # self.distances.append(distance)
+            # self.counter = self.counter + 1
+            # if(self.counter > 1000):
+            #     print("Calculating median ")
+            #     median = np.median(self.distances)
+            #     print("Median: ", median)
+            #     rospy.sleep(1000)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
             #Get distance (z) to xy value 
             z = 1
 
-            #self.calculate_XYZ(x,y,z)
-            print("DISTANCE", distance)
+            self.calculate_XYZ(x,y,z)
+            #print("DISTANCE", distance)
             cv2.waitKey(3)
             cv2.imshow("ja2", image)
             #cv2.waitKey(0)
