@@ -28,8 +28,8 @@ class depth_dectect:
         self.threshold_depth = None #distances higher than this are removed
         self.cam_height_principle_point = 1014
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera) not currently used : ]
-        self.focal_length_x = 1.0663355230063235 * 10**3 #px
-        self.focal_length_y = 1.0676521964588569 * 10**3 #px
+        self.focal_length_x = 1.0685132562503038 * 10**3 #px
+        self.focal_length_y = 1.0691031314129875 * 10**3 #px
         self.pixel_size = 0.0031 #mm/px
         self.pixel_size_tof = 0.01
         self.sensor_width_mm = 5.952 #mm
@@ -255,7 +255,7 @@ class depth_dectect:
                             #print("Table",distance_to_table)
 
                             # #Call parcel_pub function
-                            self.parcel_pub(Point(width, length, height), angle, Point(pos_x, pos_y, pos_z))
+                            self.parcel_pub(Point(width_b, length_b, height), angle, Point(pos_x, pos_y, pos_z))
                             # self.parcel_pub((rect[1][1])/self.cm_per_pixel, (rect[1][0])/self.cm_per_pixel, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
                         # #Overlay centerpoint and contours to thresholded images
                         cv2.drawContours(converted_image,[box],0,(255,255,255),2)
@@ -264,9 +264,9 @@ class depth_dectect:
             #cv2.circle(uncropped_image, (890, 535), 3, (10000, 10000, 10000), -1)
             #cv2.circle(converted_image, (890 - 638, 535 - 242), 3, (10000, 10000, 1000), -1)
 
-            cv2.imshow("Uncropped Image (*16)", uncropped_image * 16)
-            cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
-            cv2.imshow("Threshold Image (*16)", threshold_image * 16)
+            # cv2.imshow("Uncropped Image (*16)", uncropped_image * 16)
+            # cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
+            # cv2.imshow("Threshold Image (*16)", threshold_image * 16)
             cv2.imshow("8-bit Threshold Image", converted_image * 16)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
