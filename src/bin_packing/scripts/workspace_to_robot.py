@@ -5,6 +5,8 @@ from bin_packing.msg import Packing_info
 from bin_packing.msg import Workspace #workspace msg
 from geometry_msgs.msg import Point
 import math
+import numpy as np
+import cv2
 
 #Converts a position given in the workspace frame to a position on the robot frame
 class converter():
@@ -36,6 +38,14 @@ class converter():
 
         print("Workspace corner relative to robot frame: ", Point(self.cage_x_displacement, self.cage_y_displacement, self.cage_z_displacement))
 
+    def matrix_from_rtvec(self, rvec, tvec):
+        (R, jac) = cv2.Rodrigues(rvec) # ignore the jacobian
+        M = np.eye(4)
+        M[0:3, 0:3] = R
+        M[0:3, 3] = tvec.squeeze() # 1-D vector, row vector, column vector, whatever
+        return M
+
+
     #Converts start_pos and end_pos from the topic /workspace/add_parcel to respect the robot frame.
     def convert_frames(self, data):
         rospy.loginfo(rospy.get_caller_id() + "New parcel to convert frames %s", data)
@@ -64,11 +74,33 @@ class converter():
         # 0.061482 -0.485282 0.984972 ParkBryan
         # 0.11 -0.269585 0.455615 Tsai
 
+        #Transformation matrix using rpy and xyz
+        rvec = np.array([3.13, 0.105, -0.09])
+        tvec = np.array([0.085, -0.48, 1.13])
+        T = self.matrix_from_rtvec(rvec, tvec)
+        #print("T: ", T)
 
-        #Calculate the point with respect to the robot's frame (The incoming data is in cm so we convert to m)
-        converted_data.start_pos.x = (data.start_pos.x/100) + cam_x_displacement
-        converted_data.start_pos.y = (data.start_pos.y/100) * -1 + cam_y_displacement
-        converted_data.start_pos.z = (data.start_pos.z/100) + cam_z_displacement
+        #Transformation frame using values given from MATLAB
+        T = np.array([[0.5010, 0.7962, -0.3392, 0.0858675], [0.8294, -0.3298, 0.4509, -0.470904], [0.2472, -0.5072, -0.8256, 1.13782], [0,0,0,1]])
+        print("T:", T)
+
+        #Vector of the point found in respect to the camera frame
+        p = np.array([data.start_pos.x/100, data.start_pos.y/100, data.start_pos.z/100, 1]) 
+
+        print("p: ", p)
+
+        result = np.matmul(T, p)
+        print("result: ", result)
+
+        converted_data.start_pos.x = result[0]
+        converted_data.start_pos.y = result[1]
+        converted_data.start_pos.z = data.start_pos.z/100
+
+        #OLD CONVERTER
+        # #Calculate the point with respect to the robot's frame (The incoming data is in cm so we convert to m)
+        # converted_data.start_pos.x = (data.start_pos.x/100) + cam_x_displacement
+        # converted_data.start_pos.y = (data.start_pos.y/100) * -1 + cam_y_displacement
+        # converted_data.start_pos.z = (data.start_pos.z/100) + cam_z_displacement
 
         #Data from the packing algorithm is specified from the corner closest to (0,0) and not the center point which the robot uses.
         #The next three lines converts it to a center point. #We convert to m again

@@ -1,0 +1,7 @@
+digraph G {
+"base_link" -> "kinect2_rgb_optical_frame"[label="Broadcaster: /camera_link_broadcaster\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1655451361.591 sec old)\nBuffer length: 0.000 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1655451361.591"[ shape=plaintext ] ;
+ }->"base_link";
+}

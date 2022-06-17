@@ -2,7 +2,7 @@ import random
 
 parcels = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
 
-random.seed(101)
+random.seed(9001)
 
 for i in range(len(parcels)):
     j = random.randrange(0,len(parcels))
