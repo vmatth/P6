@@ -36,7 +36,7 @@ class hand_eye:
         # moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('robot_mover', anonymous=True)
 
-        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_depth_rect", Image, self.callback)
+        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color_rect", Image, self.callback)
 
         self.counter = 0
         self.distances = []
@@ -96,11 +96,11 @@ class hand_eye:
             #cx = 890
             #cy = 535
 
-            x = 890
-            y = 535
+            x = 946
+            y = 537
             #Draw circle at xy
             distance = image[y][x]
-            cv2.circle(image, (x,y), 3, (255, 0, 0), -1)
+            cv2.circle(image, (x,y), 3, (255, 255, 255), -1)
 
 
             self.distances.append(distance)

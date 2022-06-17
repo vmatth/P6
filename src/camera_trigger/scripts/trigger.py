@@ -13,7 +13,7 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 from geometry_msgs.msg import Point
 from numpy.linalg import inv
-
+import seaborn as sns
 
 ## When triggered
     # Get data from camera : subscribe to kinect2/hd/depth_image_rect
@@ -26,10 +26,10 @@ class depth_dectect:
         self.bridge = CvBridge()
         self.depth_data = None
         self.threshold_depth = None #distances higher than this are removed
-        self.cam_height_principle_point = 1020
+        self.cam_height_principle_point = 1025
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera) not currently used : ]
-        self.focal_length_x = 1.0663355230063235 * 10**3 #px
-        self.focal_length_y = 1.0676521964588569 * 10**3 #px
+        self.focal_length_x = 1.0685132562503038 * 10**3 #px
+        self.focal_length_y = 1.0691031314129875 * 10**3 #px
         self.pixel_size = 0.0031 #mm/px
         self.pixel_size_tof = 0.01
         self.sensor_width_mm = 5.952 #mm
@@ -113,9 +113,12 @@ class depth_dectect:
         # # Creating plot
         # ax.scatter3D(x_arr, y_arr, depth_data_list, color = "green")
         # plt.title("simple 3D scatter plot")
+        #ax = sns.heatmap(depth_image, vmin= lowest_depth, vmax= 1009, cmap="autumn")
+
+
         
-        # # show plot
-        # plt.show()
+        # show plot
+       # plt.show()
         
                 
 
@@ -124,8 +127,8 @@ class depth_dectect:
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
             uncropped_image = depth_image.copy()
-            crop_min_y = 243
-            crop_max_y = 785
+            crop_min_y = 345
+            crop_max_y = 825
             crop_min_x = 638
             crop_max_x = 1050
             depth_image = depth_image[crop_min_y:crop_max_y, crop_min_x:crop_max_x]
@@ -244,12 +247,20 @@ class depth_dectect:
                             print("Parcel height [cm]", height)
                             print("Parcel angle ", angle)
 
+                            print("distance to parcel: ", distance_to_parcel)
+
+                            new_x = (distance_to_parcel / 1068.5132) * (centerpoint_x + crop_min_x - 946.4624)
+                            print("test: X", new_x)
+                            new_y = (distance_to_parcel / 1069.1031) * (centerpoint_y + crop_min_y - 537.20)
+                            print("test: Y", new_y)
+
+
                             XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
                             #print("XYZ", XYZ[0])
 
                             #todo: lav om til hand eye cal
-                            pos_x = XYZ[0][0] * 100
-                            pos_y = XYZ[1][0] * 100
+                            pos_x = new_x / 10 #XYZ[0][0] * 100
+                            pos_y = new_y / 10 #XYZ[1][0] * 100
                             pos_z = height
                             print("posx: ", pos_x, "posy: ", pos_y, "posz: ", pos_z)
                             #print("Table",distance_to_table)
@@ -264,9 +275,9 @@ class depth_dectect:
             #cv2.circle(uncropped_image, (890, 535), 3, (10000, 10000, 10000), -1)
             #cv2.circle(converted_image, (890 - 638, 535 - 242), 3, (10000, 10000, 1000), -1)
 
-            cv2.imshow("Uncropped Image (*16)", uncropped_image * 16)
-            cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
-            cv2.imshow("Threshold Image (*16)", threshold_image * 16)
+            # cv2.imshow("Uncropped Image (*16)", uncropped_image * 16)
+            # cv2.imshow("Raw Depth Image (*16)", depth_image * 16)
+            # cv2.imshow("Threshold Image (*16)", threshold_image * 16)
             cv2.imshow("8-bit Threshold Image", converted_image * 16)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
@@ -294,9 +305,9 @@ class depth_dectect:
     #useCameraParameters = False calculates with respect to robot frame
     def calculate_XYZ(self, u, v, z):
         s = 1
-        A = np.matrix([[1.0663355230063235*10**3, 0., 9.4913144897241432*10**2], [0, 1.0676521964588569*10**3, 5.3505238717783232*10**2], [0., 0., 1.]])
-        R = np.matrix([[9.9988107827826278e-01, -5.9309422117523802e-04,-1.5410306302711205e-02],[6.1924030152182927e-04, 9.9999837692924043e-01, 1.6919457242115465e-03], [1.5409277807462079e-02, -1.7012871978343688e-03, 9.9987982266836595e-01]])
-        t = np.array([[-4.0874634519709227e-02, 1.3982841913969224e-04, 2.7999300285299357e-03]])
+        A = np.matrix([[1.0685132562503038e+03, 0, 9.4646247882698822e+02], [0, 1.0691031314129875e+03, 5.3720184420921953e+02], [0., 0., 1.]])
+        R = np.matrix([[9.9986175081970585e-01, -1.7907271803387413e-03, -1.6530957138594669e-02],[1.7879233427828131e-03, 9.9999838466413493e-01, -1.8438883127595748e-04], [1.6531260625638637e-02, 1.5480725552454968e-04, 9.9986333739008593e-01]])
+        t = np.array([[-3.5600027180614863e-02, 1.3910620566261074e-03, 9.7996622621221927e-03]])
 
         # print("u,v,z", u, v, z)
         # print("A: ", A)

@@ -67,21 +67,34 @@ class converter():
         # <-----o                       o----->
 
         #How much the camera frame is displaced from the robot's frame [m] 
-        cam_x_displacement = 0.042
-        cam_y_displacement = -0.528
-        cam_z_displacement = 0
+        # cam_x_displacement = 0.042
+        # cam_y_displacement = -0.528
+        # cam_z_displacement = 0
         #xyz="0.0858675 -0.480904 1.13782" Danilidis
         # 0.061482 -0.485282 0.984972 ParkBryan
         # 0.11 -0.269585 0.455615 Tsai
 
         #Transformation matrix using rpy and xyz
-        rvec = np.array([3.13, 0.105, -0.09])
-        tvec = np.array([0.085, -0.48, 1.13])
-        T = self.matrix_from_rtvec(rvec, tvec)
+        rvec = np.array([0.015047, 3.13043, 3.11278])
+        tvec = np.array([0.0946132, -0.499427, 1.02439])
+        #T = self.matrix_from_rtvec(rvec, tvec)
         #print("T: ", T)
 
+
+       
+
+
+   
+ 
+
         #Transformation frame using values given from MATLAB
-        T = np.array([[0.5010, 0.7962, -0.3392, 0.0858675], [0.8294, -0.3298, 0.4509, -0.470904], [0.2472, -0.5072, -0.8256, 1.13782], [0,0,0,1]])
+        #T = np.array([[0.7195,   -0.2671,   0.6411, 0.0946132], [-0.6331,   -0.6318,    0.4472, -0.499427], [0.2856, -0.7276, -0.6237, 1.13782], [0,0,0,1]]) #Fixed angles
+
+        #T = np.array([[0.7195, 0.6331, -0.2856, 0.0946132], [0.5927, -0.3453, 0.7276, -0.499427], [0.3620, -0.6928, -0.6237, 1.13782], [0,0,0,1]]) #Euler angles
+
+        #another one
+        T = np.array([[0.999523,   0.028802,  0.0111634,  0.0946132], [0.0286327,  -0.999477,  0.0150455,  -0.499427], [0.0115909, -0.0147187,  -0.999824,  1.02439], [0, 0, 0, 1]])
+
         print("T:", T)
 
         #Vector of the point found in respect to the camera frame
