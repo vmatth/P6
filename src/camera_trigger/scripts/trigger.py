@@ -13,7 +13,7 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 from geometry_msgs.msg import Point
 from numpy.linalg import inv
-
+import seaborn as sns
 
 ## When triggered
     # Get data from camera : subscribe to kinect2/hd/depth_image_rect
@@ -113,9 +113,12 @@ class depth_dectect:
         # # Creating plot
         # ax.scatter3D(x_arr, y_arr, depth_data_list, color = "green")
         # plt.title("simple 3D scatter plot")
+        ax = sns.heatmap(depth_image, vmin= lowest_depth, vmax= 1009, cmap="autumn")
+
+
         
-        # # show plot
-        # plt.show()
+        # show plot
+        plt.show()
         
                 
 
@@ -124,8 +127,8 @@ class depth_dectect:
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_data, "16UC1")
             uncropped_image = depth_image.copy()
-            crop_min_y = 243
-            crop_max_y = 785
+            crop_min_y = 345
+            crop_max_y = 825
             crop_min_x = 638
             crop_max_x = 1050
             depth_image = depth_image[crop_min_y:crop_max_y, crop_min_x:crop_max_x]
