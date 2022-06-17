@@ -255,7 +255,7 @@ class depth_dectect:
                             #print("Table",distance_to_table)
 
                             # #Call parcel_pub function
-                            self.parcel_pub(Point(width, length, height), angle, Point(pos_x, pos_y, pos_z))
+                            self.parcel_pub(Point(width_b, length_b, height), angle, Point(pos_x, pos_y, pos_z))
                             # self.parcel_pub((rect[1][1])/self.cm_per_pixel, (rect[1][0])/self.cm_per_pixel, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
                         # #Overlay centerpoint and contours to thresholded images
                         cv2.drawContours(converted_image,[box],0,(255,255,255),2)
