@@ -26,7 +26,7 @@ class depth_dectect:
         self.bridge = CvBridge()
         self.depth_data = None
         self.threshold_depth = None #distances higher than this are removed
-        self.cam_height_principle_point = 1025
+        self.cam_height_principle_point = 1019
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera) not currently used : ]
         self.focal_length_x = 1.0685132562503038 * 10**3 #px
         self.focal_length_y = 1.0691031314129875 * 10**3 #px 
