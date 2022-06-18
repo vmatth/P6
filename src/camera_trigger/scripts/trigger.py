@@ -26,7 +26,7 @@ class depth_dectect:
         self.bridge = CvBridge()
         self.depth_data = None
         self.threshold_depth = None #distances higher than this are removed
-        self.cam_height_principle_point = 1014
+        self.cam_height_principle_point = 1021
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera) not currently used : ]
         self.focal_length_x = 1.0685132562503038 * 10**3 #px
         self.focal_length_y = 1.0691031314129875 * 10**3 #px
@@ -113,12 +113,12 @@ class depth_dectect:
         # # Creating plot
         # ax.scatter3D(x_arr, y_arr, depth_data_list, color = "green")
         # plt.title("simple 3D scatter plot")
-        ax = sns.heatmap(depth_image, vmin= lowest_depth, vmax= 1009, cmap="autumn")
+        # ax = sns.heatmap(depth_image, vmin= lowest_depth, vmax= 1009, cmap="autumn")
 
 
         
-        # show plot
-        plt.show()
+        # # show plot
+        # plt.show()
         
                 
 
@@ -227,12 +227,12 @@ class depth_dectect:
                             #   |    \
                             #   ------ (XY)
                             #      b
-                            #XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1, False)
+                            # XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
                             # a = self.cam_height_principle_point 
                             # b = XYZ[1] * 1000 #m to mm (X coordinate: [0], Y coordinate : [1])
                             # #calculate c
 
-                            # c = math.sqrt(a**2 + b**2)
+                            # c = math.sqrt(a**2 + b**2)    
                             
                             # print("a", a)
                             # print("b", b)
