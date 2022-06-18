@@ -36,7 +36,7 @@ class hand_eye:
         # moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('robot_mover', anonymous=True)
 
-        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_color_rect", Image, self.callback)
+        self.rgb_sub = rospy.Subscriber("/kinect2/hd/image_depth_rect", Image, self.callback)
 
         self.counter = 0
         self.distances = []

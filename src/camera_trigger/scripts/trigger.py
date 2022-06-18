@@ -29,17 +29,15 @@ class depth_dectect:
         self.cam_height_principle_point = 1025
         self.camera_offset = 2.4 #cm. The height is subtracted by this value. (As there is a small offset in the kinect2 camera) not currently used : ]
         self.focal_length_x = 1.0685132562503038 * 10**3 #px
-        self.focal_length_y = 1.0691031314129875 * 10**3 #px
+        self.focal_length_y = 1.0691031314129875 * 10**3 #px 
         self.pixel_size = 0.0031 #mm/px
         self.pixel_size_tof = 0.01
         self.sensor_width_mm = 5.952 #mm
-        self.sensor_width_tof_mm = 5.120
         self.sensor_length_mm = 3.348 #mm
-        self.sensor_length_tof_mm = 4.240
         self.sensor_width_px = 1920 #px 
-        self.sensor_width_tof_px = 512
         self.sensor_length_px = 1080 #px
-        self.sensor_length_tof_px = 424
+        self.principle_point_x = 946.4624
+        self.principle_point_y = 537.20
 
         self.depth_list = []
         self.counter = 0
@@ -88,8 +86,8 @@ class depth_dectect:
                     if depth_image[y][x] < lowest_depth:
                         lowest_depth = depth_image[y][x]
                         lowest_pix = (x,y)
-                        print("new lowest depth found: ", lowest_depth)
-                        print("at pixel: ", x, y)
+                        # print("new lowest depth found: ", lowest_depth)
+                        # print("at pixel: ", x, y)
                         list.append(lowest_pix)
                         lowest_pixel_depth.append(lowest_depth)
     
@@ -99,12 +97,12 @@ class depth_dectect:
         # find the 4 lowest pixel depths
         lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)-1] # average
         #lowest_pixel_depth = lowest_pixel_depth[(len(lowest_pixel_depth))-4:len(lowest_pixel_depth)] # median
-        print("depths: ", lowest_pixel_depth)
+        #print("depths: ", lowest_pixel_depth)
  
         # calculate average of the 4 lowest pixel depths
         self.threshold_depth = ((sum(lowest_pixel_depth) / len(lowest_pixel_depth))+40)/10  #average
         #self.threshold_depth = np.median(lowest_pixel_depth) / 10.0 #median. Divide by 10.0 to go from mm to m
-        print("thresholding depth: ", self.threshold_depth)
+        #print("thresholding depth: ", self.threshold_depth)
         #cv2.circle(depth_image, lowest_pix, 3, (10000, 10000, 10000), -1)
 
         # fig = plt.figure(figsize = (10, 7))
@@ -134,7 +132,7 @@ class depth_dectect:
             depth_image = depth_image[crop_min_y:crop_max_y, crop_min_x:crop_max_x]
             height = depth_image.shape[0]
             width = depth_image.shape[1]
-            print("height width", height, width)
+            #print("height width", height, width)
 
             self.get_depth(depth_image)
 
@@ -161,27 +159,28 @@ class depth_dectect:
                     counter = counter + 1
             
 
-            print("Contours with area over 500: ", counter)
+           # print("Contours with area over 500: ", counter)
 
             if(counter == 1):
                 for cnt in contours:
                     area = cv2.contourArea(cnt)
                     
                     if area > 500:
-                        print("area: ", area)
+                        #print("area: ", area)
 
                         #Create a rotated box around the parcel https://theailearner.com/tag/cv2-minarearect/
                         rect = cv2.minAreaRect(cnt)
                         box = cv2.boxPoints(rect)
                         box = np.int0(box)
+                        print("box box, box box: ", box)
                         #Find centerpoint using quik maffs
                         centerpoint_x = ((box[3][0] - box[1][0])/2) + box[1][0]
                         centerpoint_y = ((box[0][1] - box[2][1])/2) + box[2][1]
                         centerpoint = (centerpoint_x, centerpoint_y)
                         center = rect[0]
 
-                        print("centerpont: ", centerpoint)
-                        print("dim ,", depth_image.shape)
+                        # print("centerpont: ", centerpoint)
+                        # print("dim ,", depth_image.shape)
 
                         #Get pixel value at centerpoint
                         if(centerpoint_x >= depth_image.shape[1] or centerpoint_y >= depth_image.shape[0]): #Check if all 4 corners are available, or else it returns error
@@ -192,31 +191,53 @@ class depth_dectect:
                             #distance_to_table = depth_image[200][200]
                             cv2.circle(converted_image, (0,0), 3, (10000, 10000, 10000), -1)
                             #print("testtstst: ", depth_image[centerpoint_x][centerpoint_y])
-                            object_width_pixels = rect[1][1]
-                            object_length_pixels = rect[1][0]
-                            print("distance to parcel: ", distance_to_parcel)
-                            print("WIDTH IN PIXELS", object_width_pixels)
-                            print("LENGTH IN PIXELS", object_length_pixels)
 
-                            object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
-                            object_length_on_sensor = self.sensor_length_mm * object_length_pixels / self.sensor_length_px
+                            print("distance to parcel: ", distance_to_parcel)
+
+                            x1 = (distance_to_parcel / self.focal_length_x) * (box[0][0] + crop_min_x - self.principle_point_x)
+                            print("test: X1", x1)
+                            y1 = (distance_to_parcel / self.focal_length_y) * (box[0][1] + crop_min_y - self.principle_point_y)
+                            print("test: Y1", y1)
+
+                            x2 = (distance_to_parcel / self.focal_length_x) * (box[1][0] + crop_min_x - self.principle_point_x)
+                            print("test: X2", x2)
+                            y2 = (distance_to_parcel / self.focal_length_y) * (box[1][1] + crop_min_y - self.principle_point_y)
+                            print("test: Y2", y2)
+
+                            x3 = (distance_to_parcel / self.focal_length_x) * (box[3][0] + crop_min_x - self.principle_point_x)
+                            print("test: X3", x3)
+                            y3 = (distance_to_parcel / self.focal_length_y) * (box[3][1] + crop_min_y - self.principle_point_y)
+                            print("test: Y3", y3)
+
+                            width = math.sqrt((x2-x1)**2+(y2-y1)**2) / 10
+                            length = math.sqrt((x3-x1)**2+(y3-y1)**2) / 10
+                            # print("length: ", length)
+
+                            # object_width_pixels = rect[1][1]
+                            # object_length_pixels = rect[1][0]
+                            
+                            # print("WIDTH IN PIXELS", object_width_pixels)
+                            # print("LENGTH IN PIXELS", object_length_pixels)
+
+                            # object_width_on_sensor = self.sensor_width_mm * object_width_pixels / self.sensor_width_px
+                            # object_length_on_sensor = self.sensor_length_mm * object_length_pixels / self.sensor_length_px
 
                             
                             # print("Bw: ", object_width_on_sensor)
                             # print("Bh: ", object_height_on_sensor)
                             # print("focal: ", self.focal_length*self.pixel_size)
-                            width = (distance_to_parcel * object_width_on_sensor / (self.focal_length_x*self.pixel_size)) / 10.0
-                            length = (distance_to_parcel * object_length_on_sensor / (self.focal_length_y*self.pixel_size)) / 10.0
+                            # width = (distance_to_parcel * object_width_on_sensor / (self.focal_length_x*self.pixel_size)) / 10.0
+                            # length = (distance_to_parcel * object_length_on_sensor / (self.focal_length_y*self.pixel_size)) / 10.0
 
                         
 
-                            small_bw = 1/((1/(self.focal_length_x*self.pixel_size))-(1/float(distance_to_parcel)))
-                            #print("small_bw: ", small_bw)
-                            small_bh = 1/((1/(self.focal_length_y*self.pixel_size))-(1/float(distance_to_parcel)))
-                            #print("small_bh: ", small_bh)
+                            # small_bw = 1/((1/(self.focal_length_x*self.pixel_size))-(1/float(distance_to_parcel)))
+                            # #print("small_bw: ", small_bw)
+                            # small_bh = 1/((1/(self.focal_length_y*self.pixel_size))-(1/float(distance_to_parcel)))
+                            # #print("small_bh: ", small_bh)
 
-                            width_b = (distance_to_parcel * object_width_on_sensor / (small_bw)) / 10.0
-                            length_b = (distance_to_parcel * object_length_on_sensor / (small_bh)) / 10.0
+                            # width_b = (distance_to_parcel * object_width_on_sensor / (small_bw)) / 10.0
+                            # length_b = (distance_to_parcel * object_length_on_sensor / (small_bh)) / 10.0
 
 
                             #Calculate parcel height based on distance from centerpoint
@@ -240,33 +261,26 @@ class depth_dectect:
                         
                             height = float((float(self.cam_height_principle_point) - float(distance_to_parcel)) / 10.0) #mm to cm
                             angle = rect[2]
-                            print("Parcel width [cm]", width)
-                            print("Parcel length [cm]", length)
-                            print("Parcel width_b [cm]", width_b)
-                            print("Parcel length_b [cm]", length_b)
-                            print("Parcel height [cm]", height)
-                            print("Parcel angle ", angle)
+                            # print("Parcel width [cm]", width)
+                            # print("Parcel length [cm]", length)
+                            # print("Parcel height [cm]", height)
+                            # print("Parcel angle ", angle)
 
-                            print("distance to parcel: ", distance_to_parcel)
+                            #print("distance to parcel: ", distance_to_parcel)
 
-                            new_x = (distance_to_parcel / 1068.5132) * (centerpoint_x + crop_min_x - 946.4624)
-                            print("test: X", new_x)
-                            new_y = (distance_to_parcel / 1069.1031) * (centerpoint_y + crop_min_y - 537.20)
-                            print("test: Y", new_y)
-
-
-                            XYZ = self.calculate_XYZ(centerpoint_x + crop_min_x, centerpoint_y + crop_min_y, 1)
-                            #print("XYZ", XYZ[0])
+                            #Calculate centerpoint in world coordinates
+                            centerpoint_x_world = (distance_to_parcel / self.focal_length_x) * (centerpoint_x + crop_min_x - self.principle_point_x)
+                            centerpoint_y_world = (distance_to_parcel / self.focal_length_y) * (centerpoint_y + crop_min_y - self.principle_point_y)
 
                             #todo: lav om til hand eye cal
-                            pos_x = new_x / 10 #XYZ[0][0] * 100
-                            pos_y = new_y / 10 #XYZ[1][0] * 100
+                            pos_x = centerpoint_x_world / 10 #XYZ[0][0] * 100
+                            pos_y = centerpoint_y_world / 10 #XYZ[1][0] * 100
                             pos_z = height
-                            print("posx: ", pos_x, "posy: ", pos_y, "posz: ", pos_z)
+                           # print("posx: ", pos_x, "posy: ", pos_y, "posz: ", pos_z)
                             #print("Table",distance_to_table)
 
                             # #Call parcel_pub function
-                            self.parcel_pub(Point(width_b, length_b, height), angle, Point(pos_x, pos_y, pos_z))
+                            self.parcel_pub(Point(width, length, height), angle, Point(pos_x, pos_y, pos_z))
                             # self.parcel_pub((rect[1][1])/self.cm_per_pixel, (rect[1][0])/self.cm_per_pixel, self.cam_height - distance_to_parcel, angle, centerpoint_x, centerpoint_y, distance_to_parcel)
                         # #Overlay centerpoint and contours to thresholded images
                         cv2.drawContours(converted_image,[box],0,(255,255,255),2)
